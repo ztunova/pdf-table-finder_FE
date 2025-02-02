@@ -1,3 +1,6 @@
+import 'react-pdf/dist/Page/TextLayer.css';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import { Box, Button, Paper, styled } from '@mui/material';
 import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 
@@ -10,19 +13,42 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 export default function PdfViewer() {
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
+  const [pages, setPages] = useState<number[]>([])
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);
+    setPages([...Array(numPages).keys()]);
+  }
+
+  function incpage() {
+    setPageNumber(pageNumber + 1);
+  }
+
+  function decpage() {
+    setPageNumber(pageNumber - 1);
   }
 
   return (
     <div>
-      <Document file="simple_bordered_tables.pdf" onLoadSuccess={onDocumentLoadSuccess}>
-        <Page pageNumber={pageNumber} />
+    <Box component="div" sx={{ 
+      overflow: 'auto',
+      width: 700,
+      height: 800,
+      borderRadius: 1,
+      bgcolor: '#007FFF',
+     }}>
+      <Document file="2_big_borderless_together.pdf" onLoadSuccess={onDocumentLoadSuccess}>
+        {
+          pages.map((val) => (
+            <Page pageNumber={val} key={val}/>
+          ))
+        }
+        {/* <Page pageNumber={pageNumber} />
+        <Page pageNumber={pageNumber+1} /> */}
       </Document>
-      <p>
-        Page {pageNumber} of {numPages}
-      </p>
+    </Box>
+    <Button onClick={decpage}>Dec</Button>
+    <Button onClick={incpage}>Inc</Button>
     </div>
   );
 }

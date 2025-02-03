@@ -1,7 +1,7 @@
 import 'react-pdf/dist/Page/TextLayer.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import { Box, Button, Paper, styled } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 
 
@@ -11,6 +11,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 export default function PdfViewer() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [pages, setPages] = useState<number[]>([])
@@ -28,6 +30,30 @@ export default function PdfViewer() {
     setPageNumber(pageNumber - 1);
   }
 
+  useEffect(() => {
+    if (!canvasRef.current) {
+      return;
+    }
+
+    var context = canvasRef.current.getContext('2d');
+    var { width, height } = canvasRef.current;
+
+    if (context !== null) {
+      console.log("here?");
+      context.save();
+
+      context.translate(width / 2, height / 2);
+      context.globalCompositeOperation = 'multiply';
+      context.textAlign = 'center';
+      context.font = '100px sans-serif';
+      context.fillStyle = 'rgba(0, 0, 0, .25)';
+      context.fillText('Acme Inc', 0, 0);
+      context.clearRect(40, 40, 50, 50);
+
+      context.restore();
+    }
+  }, []);
+
   return (
     <div>
     <Box component="div" sx={{ 
@@ -40,7 +66,8 @@ export default function PdfViewer() {
       <Document file="2_big_borderless_together.pdf" onLoadSuccess={onDocumentLoadSuccess}>
         {
           pages.map((val) => (
-            <Page pageNumber={val} key={val}/>
+            console.log(val),
+            <Page pageNumber={val} key={val} noData={""} canvasRef={canvasRef}/>
           ))
         }
         {/* <Page pageNumber={pageNumber} />

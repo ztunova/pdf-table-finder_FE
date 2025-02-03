@@ -4,11 +4,10 @@ import PdfViewer from './components/PdfViewer'
 import FileUploader from './components/FileUploader'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <>
-      <FileUploader />
+      <PdfViewer />
     </>
   )
 }

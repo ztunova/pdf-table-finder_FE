@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from 'react';
+import { Canvas, PencilBrush } from 'fabric';
 
 interface DrawingCanvasProps {
   width: number;
@@ -7,70 +8,35 @@ interface DrawingCanvasProps {
 
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
+  const fabricRef = useRef<Canvas>();
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
+    if (!canvasRef.current) return;
 
-    const context = canvas.getContext('2d');
-    if (!context) {
-      return
-    }
+    // Initialize Fabric canvas
+    const canvas = new Canvas(canvasRef.current, {
+      width,
+      height,
+      isDrawingMode: true,
+    });
 
-    context.strokeStyle = 'red';
-    context.lineWidth = 2;
-    setContext(context);
-  }, []);
+    // Set up drawing brush
+    const brush = new PencilBrush(canvas);
+    brush.width = 2;
+    brush.color = 'red';
+    canvas.freeDrawingBrush = brush;
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!context) {
-      return;
-    }
-    
-    const { offsetX, offsetY } = e.nativeEvent;
-    context.beginPath();
-    context.moveTo(offsetX, offsetY);
-    setIsDrawing(true);
-  };
+    fabricRef.current = canvas;
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !context) {
-      return;
-    }
-
-    const { offsetX, offsetY } = e.nativeEvent;
-    context.lineTo(offsetX, offsetY);
-    context.stroke();
-  };
-
-  const stopDrawing = () => {
-    if (!context) {
-      return;
-    }
-    context.closePath();
-    setIsDrawing(false);
-  };
+    // Cleanup on unmount
+    return () => {
+      canvas.dispose();
+    };
+  }, [width, height]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        pointerEvents: 'all',
-        zIndex: 2,
-      }}
-      onMouseDown={startDrawing}
-      onMouseMove={draw}
-      onMouseUp={stopDrawing}
-      onMouseLeave={stopDrawing}
-    />
+    <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}>
+      <canvas ref={canvasRef} />
+    </div>
   );
 };

@@ -13,6 +13,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^6.4.2",
+    "@types/fabric": "^5.3.9",
     "@wojtekmaj/react-hooks": "^1.22.0",
     "axios": "^1.7.9",
     "fabric": "^6.5.4",

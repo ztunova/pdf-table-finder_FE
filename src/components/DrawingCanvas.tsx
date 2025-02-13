@@ -27,6 +27,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
   // to maintain state between mouse events (mouse down/ moving/ up)
   // using useState instead of useRef would cause re-renders on every mouse move 
   const isDrawingRef = useRef<boolean>(false)
+
+  // Stores the current rectangle being drawn
+  // Used to keep track of which rectangle we're currently drawing so we can update it during mouse move
   const rectRef = useRef<Rect>();
 
   useEffect(() => {
@@ -34,13 +37,39 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
 
     // Initialize Fabric canvas
     const canvas = new Canvas(canvasRef.current, {
-      width,
-      height,
+      width: width,
+      height: height,
     });
 
-    canvas.on('mouse:down', handleMouseDown);
-    canvas.on('mouse:move', handleMouseMove);
-    canvas.on('mouse:up', handleMouseUp);
+    // canvas.on('mouse:down', handleMouseDown);
+    // canvas.on('mouse:move', handleMouseMove);
+    // canvas.on('mouse:up', handleMouseUp);
+
+    fabricRef.current = canvas;
+
+    // Cleanup on unmount
+    return () => {
+      // canvas.off('mouse:down', handleMouseDown);
+      // canvas.off('mouse:move', handleMouseMove);
+      // canvas.off('mouse:up', handleMouseUp);
+      canvas.dispose();
+    };
+  }, [width, height]);
+
+  useEffect(() => {
+    console.log("current", isDrawingEnabled)
+
+    const canvas = fabricRef.current
+    if (!canvas) return;
+
+    // console.log("canvas", canvas)
+
+    if (isDrawingEnabled) {
+      console.log("Drawing enabled")
+      canvas.on('mouse:down', handleMouseDown);
+      canvas.on('mouse:move', handleMouseMove);
+      canvas.on('mouse:up', handleMouseUp);
+    }
 
     fabricRef.current = canvas;
 
@@ -49,16 +78,14 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
       canvas.off('mouse:down', handleMouseDown);
       canvas.off('mouse:move', handleMouseMove);
       canvas.off('mouse:up', handleMouseUp);
-      canvas.dispose();
     };
-  }, [width, height]);
+
+  }, [isDrawingEnabled])
 
   const handleMouseDown = (eventData: TPointerEventInfo<TPointerEvent>) => {
-    console.log(eventData)
     console.log("is drawing enabled", isDrawingEnabled)
-    // if (!isDrawingEnabled || !fabricRef.current) {
-    if (!fabricRef.current) {
-      console.log(!isDrawingEnabled, !fabricRef.current)
+    if (!isDrawingEnabled || !fabricRef.current) {
+    // if (!fabricRef.current) {
       console.log("Drawing not enabled")
       return;
     }
@@ -113,13 +140,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
     rectRef.current = undefined;
   };
 
-  const toggleDrawing = () => {
-    // console.log("current", isDrawingEnabled)
-    // console.log("new", !isDrawingEnabled)
-    console.log("current", isDrawingEnabled)
-    setIsDrawingEnabled(!isDrawingEnabled);
-  };
-
   const clearCanvas = () => {
     if (fabricRef.current) {
       fabricRef.current.clear();
@@ -133,7 +153,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
       </div>
       <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 3 }}>
         <button 
-          onClick={toggleDrawing}
+          onClick={() => setIsDrawingEnabled(!isDrawingEnabled)}
           style={{
             padding: '8px 16px',
             backgroundColor: isDrawingEnabled ? '#007FFF' : '#fff',

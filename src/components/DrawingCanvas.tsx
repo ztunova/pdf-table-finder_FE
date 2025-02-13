@@ -39,23 +39,127 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
     });
 
     canvas.on('mouse:down', handleMouseDown);
+    canvas.on('mouse:move', handleMouseMove);
+    canvas.on('mouse:up', handleMouseUp);
 
     fabricRef.current = canvas;
 
     // Cleanup on unmount
     return () => {
       canvas.off('mouse:down', handleMouseDown);
+      canvas.off('mouse:move', handleMouseMove);
+      canvas.off('mouse:up', handleMouseUp);
       canvas.dispose();
     };
   }, [width, height]);
 
   const handleMouseDown = (eventData: TPointerEventInfo<TPointerEvent>) => {
     console.log(eventData)
+    console.log("is drawing enabled", isDrawingEnabled)
+    // if (!isDrawingEnabled || !fabricRef.current) {
+    if (!fabricRef.current) {
+      console.log(!isDrawingEnabled, !fabricRef.current)
+      console.log("Drawing not enabled")
+      return;
+    }
+
+    isDrawingRef.current = true;
+    const pointer = eventData.viewportPoint;
+
+    // Create new rectangle
+    rectRef.current = new Rect({
+      left: pointer.x,
+      top: pointer.y,
+      width: 0,
+      height: 0,
+      fill: 'transparent',
+      stroke: 'red',
+      strokeWidth: 2,
+    });
+
+    fabricRef.current.add(rectRef.current);
+
   }
 
+  const handleMouseMove = (eventData: TPointerEventInfo<TPointerEvent>) => {
+    const pointer = eventData.viewportPoint;
+    // if (!isDrawingRef.current || !rectRef.current || pointer) { 
+    if (!rectRef.current || !pointer) {
+      return;
+    }
+
+    const startX = rectRef.current.left ?? 0;
+    const startY = rectRef.current.top ?? 0;
+
+    // Calculate width and height based on mouse position
+    const width = pointer.x - startX;
+    const height = pointer.y - startY;
+
+    // Update rectangle size
+    rectRef.current.set({
+      width: Math.abs(width),
+      height: Math.abs(height),
+      left: width > 0 ? startX : pointer.x,
+      top: height > 0 ? startY : pointer.y,
+    });
+
+    rectRef.current.setCoords();
+    fabricRef.current?.renderAll();
+
+  }
+
+  const handleMouseUp = () => {
+    isDrawingRef.current = false;
+    rectRef.current = undefined;
+  };
+
+  const toggleDrawing = () => {
+    // console.log("current", isDrawingEnabled)
+    // console.log("new", !isDrawingEnabled)
+    console.log("current", isDrawingEnabled)
+    setIsDrawingEnabled(!isDrawingEnabled);
+  };
+
+  const clearCanvas = () => {
+    if (fabricRef.current) {
+      fabricRef.current.clear();
+    }
+  };
+
   return (
-    <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}>
-      <canvas ref={canvasRef} />
+    <div>
+      <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}>
+        <canvas ref={canvasRef} />
+      </div>
+      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 3 }}>
+        <button 
+          onClick={toggleDrawing}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: isDrawingEnabled ? '#007FFF' : '#fff',
+            color: isDrawingEnabled ? '#fff' : '#000',
+            border: '1px solid #007FFF',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginRight: '8px'
+          }}
+        >
+          {isDrawingEnabled ? 'Disable Drawing' : 'Enable Drawing'}
+        </button>
+        <button 
+          onClick={clearCanvas}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#fff',
+            color: '#000',
+            border: '1px solid #007FFF',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Clear Canvas
+        </button>
+      </div>
     </div>
   );
 };

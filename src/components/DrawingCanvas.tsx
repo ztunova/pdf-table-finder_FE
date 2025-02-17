@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Rect, TPointerEvent, TPointerEventInfo } from 'fabric';
+import { useDrawing } from '../DrawingContext';
 
 interface DrawingCanvasProps {
   width: number;
@@ -7,6 +8,7 @@ interface DrawingCanvasProps {
 }
 
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) => {
+  const { isDrawingEnabled } = useDrawing();
   // useRef for storing values that we need to access throughout the component's lifecycle but don't need to trigger re-renders
   // usage of useState instead of useRef would cause unnecessary re-renders
 
@@ -19,9 +21,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
   // 2. We need the Fabric.js canvas instance to control drawing features
   // access using fabricRef.current
   const fabricRef = useRef<Canvas>();
-
-  // This state controls whether rectangle drawing is enabled or disabled
-  const [isDrawingEnabled, setIsDrawingEnabled] = useState<boolean>(false);
   
   // tracking if we are currently in the process of drawing rectangle
   // to maintain state between mouse events (mouse down/ moving/ up)
@@ -41,17 +40,10 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
       height: height,
     });
 
-    // canvas.on('mouse:down', handleMouseDown);
-    // canvas.on('mouse:move', handleMouseMove);
-    // canvas.on('mouse:up', handleMouseUp);
-
     fabricRef.current = canvas;
 
     // Cleanup on unmount
     return () => {
-      // canvas.off('mouse:down', handleMouseDown);
-      // canvas.off('mouse:move', handleMouseMove);
-      // canvas.off('mouse:up', handleMouseUp);
       canvas.dispose();
     };
   }, [width, height]);
@@ -110,7 +102,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
 
   const handleMouseMove = (eventData: TPointerEventInfo<TPointerEvent>) => {
     const pointer = eventData.viewportPoint;
-    // if (!isDrawingRef.current || !rectRef.current || pointer) { 
     if (!rectRef.current || !pointer) {
       return;
     }
@@ -147,39 +138,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
   };
 
   return (
-    <div>
-      <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}>
-        <canvas ref={canvasRef} />
-      </div>
-      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 3 }}>
-        <button 
-          onClick={() => setIsDrawingEnabled(!isDrawingEnabled)}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: isDrawingEnabled ? '#007FFF' : '#fff',
-            color: isDrawingEnabled ? '#fff' : '#000',
-            border: '1px solid #007FFF',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginRight: '8px'
-          }}
-        >
-          {isDrawingEnabled ? 'Disable Drawing' : 'Enable Drawing'}
-        </button>
-        <button 
-          onClick={clearCanvas}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#fff',
-            color: '#000',
-            border: '1px solid #007FFF',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Clear Canvas
-        </button>
-      </div>
+    <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}>
+      <canvas ref={canvasRef} />
     </div>
   );
 };

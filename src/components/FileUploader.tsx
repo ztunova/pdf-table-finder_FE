@@ -1,11 +1,13 @@
 import axios from "axios";
 import { ChangeEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 // chceme mat 1 stav ktory bude reprezentovat vsetky mozne stavy
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error'
 
 export default function FileUploader() {
+  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -52,6 +54,7 @@ export default function FileUploader() {
       // niekedy sa nemusi dosiahnut celych 100% ale ked uz je status success tak chceme prave 100% => nastavime
       setStatus('success');
       setUploadProgress(100);
+      navigate('/process')
     } 
     catch {
       // ak sa nieco stane tak sa uploadProgress nenastavi sam od seba na 0, treba manualne

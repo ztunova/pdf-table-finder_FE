@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { DrawingProvider } from "../DrawingContext";
+import { DrawingProvider } from "../custom-context/DrawingContext";
 import PdfContent from "./PdfContent";
 import { PdfToolbar } from "./PdfToolbar";
 

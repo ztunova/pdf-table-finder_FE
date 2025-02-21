@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Rect, TPointerEvent, TPointerEventInfo } from 'fabric';
-import { useDrawing } from '../DrawingContext';
+import { useDrawing } from '../custom-context/DrawingContext';
 
 interface DrawingCanvasProps {
   width: number;

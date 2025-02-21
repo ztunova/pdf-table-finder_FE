@@ -4,6 +4,7 @@ import { Box, Button, Paper, styled } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { PdfSinglePage } from './PdfSinglePage';
+import { usePdf } from '../custom-context/PdfContext';
 
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -12,6 +13,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 export default function PdfContent() {
+  const { pdfUrl } = usePdf();
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [pages, setPages] = useState<number[]>([])
@@ -40,7 +42,7 @@ export default function PdfContent() {
             borderRadius: 1,
             bgcolor: '#007FFF',
             }}>
-                <Document file="2_big_borderless_together.pdf" onLoadSuccess={onDocumentLoadSuccess}>
+                <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess}>
                     {
                     pages.map((val) => (
                         console.log(val),

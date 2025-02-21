@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePdf } from "../custom-context/PdfContext";
 
 
 // chceme mat 1 stav ktory bude reprezentovat vsetky mozne stavy
@@ -8,6 +9,7 @@ type UploadStatus = 'idle' | 'uploading' | 'success' | 'error'
 
 export default function FileUploader() {
   const navigate = useNavigate();
+  const { setPdfUrl } = usePdf();
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -16,7 +18,10 @@ export default function FileUploader() {
     // e.target.files obsahuje vsetky subory ktore user vybral
     // budeme brat ale iba prvy 
     if (e.target.files) {
-      setFile(e.target.files[0])
+      const uploadedFile = e.target.files[0];
+      setFile(uploadedFile);
+      const fileUrl = URL.createObjectURL(uploadedFile);
+      setPdfUrl(fileUrl);   // automatically handles cleanup of previous url
     }
   }
 
@@ -60,6 +65,7 @@ export default function FileUploader() {
       // ak sa nieco stane tak sa uploadProgress nenastavi sam od seba na 0, treba manualne
       setStatus('error');
       setUploadProgress(0);
+      setPdfUrl(null);
     };
 
   }

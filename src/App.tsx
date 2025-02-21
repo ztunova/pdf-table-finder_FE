@@ -5,6 +5,7 @@ import FileUploader from './components/FileUploader'
 import LandingPage from './pages/LandingPage'
 import { createTheme, ThemeProvider } from '@mui/material'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { PdfProvider } from './custom-context/PdfContext'
 
 
 const theme = createTheme({
@@ -26,13 +27,15 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<FileUploader />} />
-          <Route path="/process" element={<PdfViewer />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <PdfProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<FileUploader />} />
+            <Route path="/process" element={<PdfViewer />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </PdfProvider>
     </ThemeProvider>
   );
 }

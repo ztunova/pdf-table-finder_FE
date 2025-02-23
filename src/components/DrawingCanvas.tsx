@@ -1,10 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Control, Rect, TPointerEvent, TPointerEventInfo, util } from 'fabric';
 import { useDrawing } from '../custom-context/DrawingContext';
+import axios from 'axios';
 
 interface DrawingCanvasProps {
+  pdfPageNumber: number;
   width: number;
   height: number;
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface RectangleCoordinates {
+  pdfPageNumber: number;
+  upperLeft: Point;
+  lowerRight: Point;
+  rectWidth: number;
+  rectHeight: number;
 }
 
 const deleteIcon = document.createElement('img');
@@ -14,7 +29,14 @@ deleteIcon.src = 'data:image/svg+xml;base64,' + btoa(`
   </svg>
 `);
 
-export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) => {
+const sendIcon = document.createElement('img');
+sendIcon.src = 'data:image/svg+xml;base64,' + btoa(`
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="black" stroke-width="2">
+    <path d="M5 12h14M13 5l7 7-7 7"/>
+  </svg>
+`);
+
+export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, width, height }) => {
   const { isDrawingEnabled } = useDrawing();
   // useRef for storing values that we need to access throughout the component's lifecycle but don't need to trigger re-renders
   // usage of useState instead of useRef would cause unnecessary re-renders
@@ -108,6 +130,44 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
     return true;
   };
 
+  // send get request to BE API with coordinates of selected rectangle to translate table 
+  const sendRectCoordinates = async(eventData: TPointerEvent, transform: any) => {
+    const target = transform.target;
+    if (!target) {
+      return false;
+    }
+
+    const rectData: RectangleCoordinates = {
+      pdfPageNumber: pdfPageNumber,
+      upperLeft: {
+        x: target.left,
+        y: target.top,
+      },
+      lowerRight: {
+        x: target.left + target.width * target.scaleX,
+        y: target.top + target.height * target.scaleY,
+      },
+      rectWidth: target.width * target.scaleX,
+      rectHeight: target.height * target.scaleY,
+    }
+
+    try {
+      const response = await axios.get("https://httpbin.org/get", {
+        params: rectData
+      });
+      console.log('Coordinates sent successfully:', response.data);
+      return true;
+    }
+    catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error:', error.response?.data || error.message);
+      } else {
+        console.error('Error sending coordinates:', error);
+      }
+      return false;
+    }
+  }
+
   const handleMouseDown = (eventData: TPointerEventInfo<TPointerEvent>) => {
     console.log("is drawing enabled", isDrawingEnabled)
     if (!isDrawingEnabled || !fabricRef.current) {
@@ -139,13 +199,23 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ width, height }) =
       x: 0.5,
       y: -0.5,
       // additional pixel offset: positive number moves right (for x) or down (for y), negative number moves left (for x) or up (for y) (as for x, y axes)
-      offsetY: -16,
       offsetX: 16,
+      offsetY: -16,
       // defines how mouse cursor will look like when hovering over the control (pointer => pointing hand) 
       cursorStyle: 'pointer',
       mouseUpHandler: deleteObject,
       render: renderIcon(deleteIcon),
     });
+
+    rectRef.current.controls.sendControl = new Control({
+      x: 0.5,
+      y: -0.35,
+      offsetX: 16,
+      offsetY: -16,
+      cursorStyle: 'pointer',
+      mouseUpHandler: sendRectCoordinates,
+      render: renderIcon(sendIcon),
+    })
 
     fabricRef.current.add(rectRef.current);
 

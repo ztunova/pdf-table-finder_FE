@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage'
 import { createTheme, ThemeProvider } from '@mui/material'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { PdfProvider } from './custom-context/PdfContext'
+import MainPage from './pages/MainPage'
 
 
 const theme = createTheme({
@@ -31,7 +32,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<FileUploader />} />
-            <Route path="/process" element={<PdfViewer />} />
+            <Route path="/process" element={<MainPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

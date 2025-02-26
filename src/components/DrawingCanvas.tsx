@@ -149,8 +149,13 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
   // send get request to BE API with coordinates of selected rectangle to translate table 
   const sendRectCoordinates = async(eventData: TPointerEvent, transform: any) => {
-    const target = transform.target;
+    const target = transform.target as unknown as RectWithData;
     if (!target) {
+      return false;
+    }
+
+    const rectangleId = target.data?.rectangleId;
+    if (!rectangleId) {
       return false;
     }
 
@@ -169,13 +174,47 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     }
 
     try {
+      // Apply visual indication that data is being fetched
+      target.set({
+        stroke: 'blue', // Change color to indicate processing
+        strokeDashArray: [5, 5] // Add dashed line effect
+      });
+      fabricRef.current?.renderAll();
+
       const response = await axios.get("https://httpbin.org/get", {
         params: rectData
       });
       console.log('Coordinates sent successfully:', response.data);
+
+      // Visual indication of success
+      target.set({
+        stroke: 'green', // Change color to indicate success
+        strokeDashArray: [] // Remove dashed line effect
+      });
+      fabricRef.current?.renderAll();
+
+      const content = (
+        <div>
+          <h3>Rectangle {rectangleId}</h3>
+          <p>Page: {pdfPageNumber}</p>
+          <p>Position: ({rectData.upperLeft.x.toFixed(0)}, {rectData.upperLeft.y.toFixed(0)}) to ({rectData.lowerRight.x.toFixed(0)}, {rectData.lowerRight.y.toFixed(0)})</p>
+          <p>Size: {rectData.rectWidth.toFixed(0)} x {rectData.rectHeight.toFixed(0)}</p>
+        </div>
+      );
+
+      // Create or update tab using the context method
+      rectangleMapping.createOrUpdateTab(rectangleId, content, response.data);
+
       return true;
     }
     catch (error) {
+      // Visual indication of error
+      target.set({
+        stroke: 'red', // Change color to indicate error
+        strokeDashArray: [] // Remove dashed line effect
+      });
+      fabricRef.current?.renderAll();
+
       if (axios.isAxiosError(error)) {
         console.error('Axios error:', error.response?.data || error.message);
       } else {

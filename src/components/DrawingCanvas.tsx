@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Control, Rect, TPointerEvent, TPointerEventInfo, util } from 'fabric';
 import { useDrawing } from '../custom-context/DrawingContext';
 import axios from 'axios';
+import { useRectangleMapping } from '../custom-context/RectangleTableMappingContext';
+import RectWithData from '../shared-types';
 
 interface DrawingCanvasProps {
   pdfPageNumber: number;
@@ -37,6 +39,9 @@ sendIcon.src = 'data:image/svg+xml;base64,' + btoa(`
 `);
 
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, width, height }) => {
+  const rectangleMapping = useRectangleMapping();
+  const rectCounter = useRef<number>(1);
+
   const { isDrawingEnabled } = useDrawing();
   // useRef for storing values that we need to access throughout the component's lifecycle but don't need to trigger re-renders
   // usage of useState instead of useRef would cause unnecessary re-renders
@@ -58,7 +63,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
   // Stores the current rectangle being drawn
   // Used to keep track of which rectangle we're currently drawing so we can update it during mouse move
-  const rectRef = useRef<Rect>();
+  const rectRef = useRef<RectWithData>();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -69,13 +74,25 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       height: height,
     });
 
+    canvas.on('object:modified', function(e) {
+      if (e.target) {
+        // Type assertion to our extended type
+        const targetWithData = e.target as unknown as RectWithData;
+        
+        if (targetWithData.data?.rectangleId) {
+          const rectId = targetWithData.data.rectangleId;
+          rectangleMapping.storeRectangle(rectId, targetWithData);
+        }
+      }
+    });
+
     fabricRef.current = canvas;
 
     // Cleanup on unmount
     return () => {
       canvas.dispose();
     };
-  }, [width, height]);
+  }, [width, height, rectangleMapping]);
 
   useEffect(() => {
     console.log("current", isDrawingEnabled)
@@ -179,6 +196,10 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     isDrawingRef.current = true;
     const pointer = eventData.viewportPoint;
 
+    // Create a unique ID for this rectangle
+    const rectangleId = `page-${pdfPageNumber}-rect-${rectCounter.current}`;
+    rectCounter.current += 1;
+
     // Create new rectangle
     rectRef.current = new Rect({
       left: pointer.x,
@@ -188,7 +209,13 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       fill: 'transparent',
       stroke: 'red',
       strokeWidth: 2,
-    });
+    }) as RectWithData;
+
+    // Add data property to the rectangle
+    rectRef.current.data = { 
+      rectangleId,
+      pdfPageNumber
+    };
 
     rectRef.current.controls.deleteControl = new Control({
       // positioning delete controll icon relative to the rectangle
@@ -248,6 +275,15 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   }
 
   const handleMouseUp = () => {
+    if (isDrawingRef.current && rectRef.current && rectRef.current.width > 10 && rectRef.current.height > 10) {
+      const rectangleId = rectRef.current.data?.rectangleId;
+      
+      // Store rectangle in mapping
+      if (rectangleId) {
+        rectangleMapping.storeRectangle(rectangleId, rectRef.current);
+      }
+    }
+
     isDrawingRef.current = false;
     rectRef.current = undefined;
   };

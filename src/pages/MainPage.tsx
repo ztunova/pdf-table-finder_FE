@@ -1,8 +1,10 @@
 import PdfViewer from "../components/PdfViewer";
 import TablesViewer from "../components/table-components/TablesViewer";
+import { RectangleTableMappingProvider } from "../custom-context/RectangleTableMappingContext";
 
 const MainPage: React.FC = () => {
     return (
+      <RectangleTableMappingProvider>
         <div style={{ 
           display: 'flex', 
           height: '100vh', 
@@ -18,6 +20,7 @@ const MainPage: React.FC = () => {
             <TablesViewer />
           </div>
         </div>
+      </RectangleTableMappingProvider>
     );
 };
 

@@ -1,5 +1,5 @@
 // TablesViewer.tsx
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SingleTable from "./SingleTable";
 import { useRectangleMapping } from "../../custom-context/RectangleTableMappingContext";
 
@@ -110,10 +110,36 @@ const TablesViewer: React.FC = () => {
               cursor: 'pointer',
               backgroundColor: activeTab === tab.id ? '#f5f5f5' : 'transparent',
               borderBottom: activeTab === tab.id ? '2px solid #1976d2' : 'none',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            {tab.label}
+            <span>{tab.label}</span>
+            {tab.id !== 'instructions' && (
+              <span 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  tabsRef.current.removeTab(tab.id);
+                }}
+                style={{
+                  marginLeft: '8px',
+                  width: '16px',
+                  height: '16px',
+                  borderRadius: '50%',
+                  background: '#ccc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  color: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </span>
+            )}
           </div>
         ))}
       </div>

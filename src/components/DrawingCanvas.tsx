@@ -140,10 +140,20 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
   // Delete object handler
   const deleteObject = (eventData: TPointerEvent, transform: any) => {
-    const target = transform.target;    // get the object
+    const target = transform.target as unknown as RectWithData;    // get the object
+    // If there's a rectangle ID, remove associated tab and data
+    const rectangleId = target.data?.rectangleId;
+    if(rectangleId) {
+      rectangleMapping.removeTabForRectangle(rectangleId);
+      rectangleMapping.removeRectangle(rectangleId);
+    }
+    
     const canvas = target.canvas;   // get its canvas
-    canvas.remove(target);
-    canvas.requestRenderAll();    // tells Fabric.js to redraw the canvas
+    if (canvas) {
+      canvas.remove(target);
+      canvas.requestRenderAll();    // tells Fabric.js to redraw the canvas
+    }
+
     return true;
   };
 
@@ -202,8 +212,16 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
         </div>
       );
 
-      // Create or update tab using the context method
-      rectangleMapping.createOrUpdateTab(rectangleId, content, response.data);
+      // Check if tab already exists
+      const existingTabId = rectangleMapping.getTabIdForRectangle(rectangleId);
+      if (existingTabId) {
+        // Update existing tab
+        rectangleMapping.updateTab(rectangleId, content, response.data);
+      } 
+      else {
+        // Create new tab
+        rectangleMapping.createTab(rectangleId, content, response.data);
+      }
 
       return true;
     }

@@ -95,15 +95,12 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   }, [width, height, rectangleMapping]);
 
   useEffect(() => {
-    console.log("current", isDrawingEnabled)
-
     const canvas = fabricRef.current
     if (!canvas) {
       return;
     }
 
     if (isDrawingEnabled) {
-      console.log("Drawing enabled")
       canvas.on('mouse:down', handleMouseDown);
       canvas.on('mouse:move', handleMouseMove);
       canvas.on('mouse:up', handleMouseUp);
@@ -212,14 +209,18 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
         </div>
       );
 
-      // Check if tab already exists
+      // Force creation of a new tab by checking if the tabId is actually defined
+      // This is important for tabs that were previously closed
       const existingTabId = rectangleMapping.getTabIdForRectangle(rectangleId);
+      console.log(`Existing tab ID for ${rectangleId}: ${existingTabId}`);
+      
       if (existingTabId) {
         // Update existing tab
         rectangleMapping.updateTab(rectangleId, content, response.data);
       } 
       else {
-        // Create new tab
+        // Create new tab - this will happen for rectangles whose tabs were previously closed
+        console.log(`Creating new tab for rectangle ${rectangleId}`);
         rectangleMapping.createTab(rectangleId, content, response.data);
       }
 
@@ -243,10 +244,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   }
 
   const handleMouseDown = (eventData: TPointerEventInfo<TPointerEvent>) => {
-    console.log("is drawing enabled", isDrawingEnabled)
     if (!isDrawingEnabled || !fabricRef.current) {
-    // if (!fabricRef.current) {
-      console.log("Drawing not enabled")
       return;
     }
 

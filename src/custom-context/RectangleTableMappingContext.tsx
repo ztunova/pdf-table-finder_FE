@@ -17,6 +17,9 @@ interface RectangleData {
 
 interface RectangleTableMappingContextType {
   tabsRef: React.RefObject<TabsRef>;
+  rectangleMap: React.MutableRefObject<Map<string, RectangleData>>;
+  tabToRectangleMap: React.MutableRefObject<Map<string, string>>;
+
   storeRectangle: (rectangleId: string, rect: RectWithData) => void;     // Store a rectangle in the mapping
   setApiResponse: (rectangleId: string, apiResponse: any) => void;      // Associate an API response with a rectangle
   setTabForRectangle: (rectangleId: string, tabId: string) => void;     // Associate a tab with a rectangle
@@ -26,6 +29,8 @@ interface RectangleTableMappingContextType {
   getAllRectanglesWithApiResponse: () => Map<string, RectangleData>;
   removeRectangle: (rectangleId: string) => void;
   getApiResponseForRectangle: (rectangleId: string) => any;
+  removeApiResponse: (rectangleId: string) => void;
+  unlinkTabAndClearData: (rectangleId: string) => void;
   
   createTab: (rectangleId: string, content: React.ReactNode, apiResponse: any) => void;
   updateTab: (rectangleId: string, content: React.ReactNode, apiResponse: any) => void;
@@ -124,6 +129,35 @@ export const RectangleTableMappingProvider: React.FC<{ children: ReactNode }> = 
         return rectangleMap.current.get(rectangleId)?.apiResponse;
     };
 
+    const removeApiResponse = (rectangleId: string) => {
+        const currentData = rectangleMap.current.get(rectangleId);
+        if (currentData) {
+            rectangleMap.current.set(rectangleId, {
+                ...currentData,
+                apiResponse: undefined,
+            });
+        }
+    }
+
+    const unlinkTabAndClearData = (rectangleId: string) => {
+        console.log(`Unlinking data for rectangle: ${rectangleId}`);
+        const currentData = rectangleMap.current.get(rectangleId);
+        
+        if (currentData && currentData.tabId) {
+            // Remove reverse mapping
+            tabToRectangleMap.current.delete(currentData.tabId);
+            
+            // Remove tab association and API response data but keep the rectangle object
+            rectangleMap.current.set(rectangleId, {
+                object: currentData.object,
+                tabId: undefined,
+                apiResponse: undefined,
+            });
+            
+            console.log(`Rectangle data after unlinking:`, rectangleMap.current.get(rectangleId));
+        }
+    }
+
     const createTab = (rectangleId: string, content: React.ReactNode, apiResponse: any) => {
         if (!tabsRef.current) { 
             console.log("POMOC")
@@ -159,7 +193,7 @@ export const RectangleTableMappingProvider: React.FC<{ children: ReactNode }> = 
 
         setApiResponse(rectangleId, apiResponse);
         const tabId = getTabIdForRectangle(rectangleId);
-        
+
         // update tab contentent if it exist, otherwise create new tab
         if (tabId) {
             tabsRef.current.updateTabContent(tabId, content, apiResponse);
@@ -183,6 +217,9 @@ export const RectangleTableMappingProvider: React.FC<{ children: ReactNode }> = 
 
     const value: RectangleTableMappingContextType = {
         tabsRef,
+        rectangleMap,
+        tabToRectangleMap,
+
         storeRectangle,
         setApiResponse,
         setTabForRectangle,
@@ -192,6 +229,9 @@ export const RectangleTableMappingProvider: React.FC<{ children: ReactNode }> = 
         getAllRectanglesWithApiResponse,
         removeRectangle,
         getApiResponseForRectangle,
+        removeApiResponse,
+        unlinkTabAndClearData,
+        
         createTab,
         updateTab,
         removeTabForRectangle,

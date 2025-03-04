@@ -149,6 +149,7 @@ const TablesViewer: React.FC = () => {
         {tabs.map(tab => (
           <SingleTable 
             key={tab.id} 
+            id={tab.id}
             isActive={activeTab === tab.id}
           >
             <div style={{ 

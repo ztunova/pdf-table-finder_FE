@@ -2,6 +2,7 @@ import { Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEve
 import { useDrawing } from "../custom-context/DrawingContext";
 import { useState } from "react";
 import axios from "axios";
+import { useTableData } from "../custom-context/TableContext";
 
 enum TableDetectionMethods {
     PYMU = 'pymu',
@@ -11,6 +12,7 @@ enum TableDetectionMethods {
 export const PdfToolbar: React.FC = () => {
     const {isDrawingEnabled, setIsDrawingEnabled} = useDrawing();
     const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
+    const tableDataContext = useTableData();
 
     const menuItems = [
         { value: TableDetectionMethods.PYMU, label: 'pymu label' },
@@ -26,7 +28,8 @@ export const PdfToolbar: React.FC = () => {
         console.log("table detection method", tableDetectionMethod)
         try {
             const response = axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
-            console.log("All tables: ", (await response).data.tables)
+            tableDataContext.setTableData((await response).data)
+            console.log("All tables from context: ", tableDataContext.tableData)
         }
         catch (error) {
             console.error('Error processing tables:', error);

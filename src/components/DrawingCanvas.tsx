@@ -1,25 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, Control, Rect, TPointerEvent, TPointerEventInfo, util } from 'fabric';
 import { useDrawing } from '../custom-context/DrawingContext';
 import axios from 'axios';
-import { useRectangleMapping } from '../custom-context/RectangleTableMappingContext';
+// import { useRectangleMapping } from '../custom-context/RectangleTableMappingContext';
 import RectWithData from '../shared-types';
+import { useTableData } from '../custom-context/TableContext';
 
+// pdf page number je cislovane od 1 na FE, od 0 na BE
 interface DrawingCanvasProps {
   pdfPageNumber: number;
   width: number;
   height: number;
 }
 
-interface Point {
-  x: number;
-  y: number;
-}
-
 interface RectangleCoordinates {
   pdfPageNumber: number;
-  upperLeft: Point;
-  lowerRight: Point;
+  upperLeftX: number;
+  upperLeftY: number;
+  lowerRightX: number;
+  lowerRightY: number;
   rectWidth: number;
   rectHeight: number;
 }
@@ -39,7 +38,7 @@ sendIcon.src = 'data:image/svg+xml;base64,' + btoa(`
 `);
 
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, width, height }) => {
-  const rectangleMapping = useRectangleMapping();
+  // const rectangleMapping = useRectangleMapping();
   const rectCounter = useRef<number>(1);
 
   const { isDrawingEnabled } = useDrawing();
@@ -64,6 +63,12 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   // Stores the current rectangle being drawn
   // Used to keep track of which rectangle we're currently drawing so we can update it during mouse move
   const rectRef = useRef<RectWithData>();
+  const { getTablesForPage } = useTableData();
+  const pageTables = getTablesForPage(pdfPageNumber)
+
+  useEffect(() => {
+    console.log(`Tables for page ${pdfPageNumber}:`, getTablesForPage(pdfPageNumber));
+  }, [pdfPageNumber, pageTables]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -81,7 +86,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
         
         if (targetWithData.data?.rectangleId) {
           const rectId = targetWithData.data.rectangleId;
-          rectangleMapping.storeRectangle(rectId, targetWithData);
+          // rectangleMapping.storeRectangle(rectId, targetWithData);
         }
       }
     });
@@ -92,7 +97,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     return () => {
       canvas.dispose();
     };
-  }, [width, height, rectangleMapping]);
+  }, [width, height]);
+  // }, [width, height, rectangleMapping]);
 
   useEffect(() => {
     const canvas = fabricRef.current
@@ -117,6 +123,10 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
   }, [isDrawingEnabled])
 
+  
+
+
+
   // Render delete icon
   const renderIcon = (icon: HTMLImageElement) => {
     return function(
@@ -140,10 +150,10 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     const target = transform.target as unknown as RectWithData;    // get the object
     // If there's a rectangle ID, remove associated tab and data
     const rectangleId = target.data?.rectangleId;
-    if(rectangleId) {
-      rectangleMapping.removeTabForRectangle(rectangleId);
-      rectangleMapping.removeRectangle(rectangleId);
-    }
+    // if(rectangleId) {
+    //   rectangleMapping.removeTabForRectangle(rectangleId);
+    //   rectangleMapping.removeRectangle(rectangleId);
+    // }
     
     const canvas = target.canvas;   // get its canvas
     if (canvas) {
@@ -168,14 +178,10 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
     const rectData: RectangleCoordinates = {
       pdfPageNumber: pdfPageNumber,
-      upperLeft: {
-        x: target.left,
-        y: target.top,
-      },
-      lowerRight: {
-        x: target.left + target.width * target.scaleX,
-        y: target.top + target.height * target.scaleY,
-      },
+      upperLeftX: target.left,
+      upperLeftY: target.top,
+      lowerRightX: target.left + target.width * target.scaleX,
+      lowerRightY: target.top + target.height * target.scaleY,
       rectWidth: target.width * target.scaleX,
       rectHeight: target.height * target.scaleY,
     }
@@ -188,7 +194,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       });
       fabricRef.current?.renderAll();
 
-      const response = await axios.get("https://httpbin.org/get", {
+      const response = await axios.get("http://127.0.0.1:8000/pdf/table", {
         params: rectData
       });
       console.log('Coordinates sent successfully:', response.data);
@@ -204,25 +210,25 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
         <div>
           <h3>Rectangle {rectangleId}</h3>
           <p>Page: {pdfPageNumber}</p>
-          <p>Position: ({rectData.upperLeft.x.toFixed(0)}, {rectData.upperLeft.y.toFixed(0)}) to ({rectData.lowerRight.x.toFixed(0)}, {rectData.lowerRight.y.toFixed(0)})</p>
+          <p>Position: ({rectData.upperLeftX.toFixed(0)}, {rectData.upperLeftY.toFixed(0)}) to ({rectData.lowerRightX.toFixed(0)}, {rectData.lowerRightY.toFixed(0)})</p>
           <p>Size: {rectData.rectWidth.toFixed(0)} x {rectData.rectHeight.toFixed(0)}</p>
         </div>
       );
 
       // Force creation of a new tab by checking if the tabId is actually defined
       // This is important for tabs that were previously closed
-      const existingTabId = rectangleMapping.getTabIdForRectangle(rectangleId);
-      console.log(`Existing tab ID for ${rectangleId}: ${existingTabId}`);
+      // const existingTabId = rectangleMapping.getTabIdForRectangle(rectangleId);
+      // console.log(`Existing tab ID for ${rectangleId}: ${existingTabId}`);
       
-      if (existingTabId) {
-        // Update existing tab
-        rectangleMapping.updateTab(rectangleId, content, response.data);
-      } 
-      else {
-        // Create new tab - this will happen for rectangles whose tabs were previously closed
-        console.log(`Creating new tab for rectangle ${rectangleId}`);
-        rectangleMapping.createTab(rectangleId, content, response.data);
-      }
+      // if (existingTabId) {
+      //   // Update existing tab
+      //   rectangleMapping.updateTab(rectangleId, content, response.data);
+      // } 
+      // else {
+      //   // Create new tab - this will happen for rectangles whose tabs were previously closed
+      //   console.log(`Creating new tab for rectangle ${rectangleId}`);
+      //   rectangleMapping.createTab(rectangleId, content, response.data);
+      // }
 
       return true;
     }
@@ -334,9 +340,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       const rectangleId = rectRef.current.data?.rectangleId;
       
       // Store rectangle in mapping
-      if (rectangleId) {
-        rectangleMapping.storeRectangle(rectangleId, rectRef.current);
-      }
+      // if (rectangleId) {
+      //   rectangleMapping.storeRectangle(rectangleId, rectRef.current);
+      // }
     }
 
     isDrawingRef.current = false;

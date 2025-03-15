@@ -3,6 +3,7 @@ import { useDrawing } from "../custom-context/DrawingContext";
 import { useState } from "react";
 import axios from "axios";
 import { useTableData } from "../custom-context/TableContext";
+import { TableDetectionResponse } from "../shared-types";
 
 enum TableDetectionMethods {
     PYMU = 'pymu',
@@ -28,7 +29,10 @@ export const PdfToolbar: React.FC = () => {
         console.log("table detection method", tableDetectionMethod)
         try {
             const response = axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
-            tableDataContext.setTableData((await response).data)
+            const allTables: TableDetectionResponse = {
+                allRectangles: (await response).data.tables
+            }
+            tableDataContext.setTableData(allTables)
             console.log("All tables from context: ", tableDataContext.tableData)
         }
         catch (error) {

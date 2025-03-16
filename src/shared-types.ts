@@ -1,13 +1,12 @@
 import { Rect } from "fabric";
 
 // Extend the Fabric object type to include our custom data
-interface RectWithData extends Rect {
+export interface RectWithData extends Rect {
     data?: {
       rectangleId: string;
       pdfPageNumber?: number;
     };
 }
-export default RectWithData;
 
 export interface TableBoundingBoxResponse {
   upperLeftX: number;
@@ -18,4 +17,10 @@ export interface TableBoundingBoxResponse {
 
 export interface TableDetectionResponse {
   allRectangles: Record<number, TableBoundingBoxResponse[]>;
+}
+
+export interface TableData {
+  id: string,
+  title: string,
+  coordinates: TableBoundingBoxResponse,
 }

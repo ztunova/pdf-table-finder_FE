@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useState } from "react";
-import { TableData, TableDetectionResponse } from "../shared-types";
+import { TableBoundingBox, TableData, TableDetectionResponse } from "../shared-types";
 import { v4 as uuidv4 } from 'uuid';
 
 type TableDataMap = {
@@ -15,6 +15,7 @@ interface TableDataContextType {
     tablesPerPage: PageTablesMap;
     setTableData: (data: TableDetectionResponse | null) => void;
     getTablesForPage: (pageNumber: number) => TableData[];
+    addTableRecord: (pageNumber: number, tableCoordinates: TableBoundingBox) => string;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
@@ -53,6 +54,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const getTablesForPage = (pageNumber: number): TableData[] => {
       const tableIdsForPage: string[] = tablesPerPage[pageNumber-1] || []
+      // console.log("table ids for page", tableIdsForPage)
       const rectDataForPage: TableData[] = []
       if (tableData) {
         for (const rectId of tableIdsForPage) {
@@ -62,8 +64,39 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
       }
 
-      return rectDataForPage
+      return [...new Set(rectDataForPage)];
     };
+
+    const addTableRecord = (pageNumber: number, tableCoordinates: TableBoundingBox): string => {
+      pageNumber = pageNumber -1
+      const rectId: string = uuidv4()
+      const tableRecord: TableData = {
+        id: rectId,
+        title: "some title",
+        coordinates: tableCoordinates,
+      }
+
+      // Update tableData state with the new record
+      setTableDataState(prevTableData => {
+        return {
+          ...(prevTableData || {}),
+          [rectId]: tableRecord
+        };
+      });
+
+      // Update tablesPerPage state to include this table for the specified page
+      setTablesPerPage(prevTablesPerPage => {
+        const updatedTablesPerPage = { ...prevTablesPerPage };
+        if (!updatedTablesPerPage[pageNumber]) {
+          updatedTablesPerPage[pageNumber] = [];
+        }
+        updatedTablesPerPage[pageNumber].push(rectId);
+        return updatedTablesPerPage;
+      });
+
+      return rectId;
+
+    }
   
     return (
       <TableDataContext.Provider
@@ -72,6 +105,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           tablesPerPage,
           setTableData,
           getTablesForPage,
+          addTableRecord,
         }}
       >
         {children}

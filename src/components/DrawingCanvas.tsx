@@ -3,8 +3,8 @@ import { Canvas, Control, Rect, TPointerEvent, TPointerEventInfo, util } from 'f
 import { useDrawing } from '../custom-context/DrawingContext';
 import axios from 'axios';
 // import { useRectangleMapping } from '../custom-context/RectangleTableMappingContext';
-import RectWithData from '../shared-types';
 import { useTableData } from '../custom-context/TableContext';
+import { RectWithData, TableBoundingBox } from '../shared-types';
 
 // pdf page number je cislovane od 1 na FE, od 0 na BE
 interface DrawingCanvasProps {
@@ -63,11 +63,13 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   // Stores the current rectangle being drawn
   // Used to keep track of which rectangle we're currently drawing so we can update it during mouse move
   const rectRef = useRef<RectWithData>();
-  const { getTablesForPage } = useTableData();
+  const { getTablesForPage, addTableRecord, tableData } = useTableData();
   const pageTables = getTablesForPage(pdfPageNumber)
 
   useEffect(() => {
+    console.log("table data", tableData)
     console.log(`Tables for page ${pdfPageNumber}:`, getTablesForPage(pdfPageNumber));
+    // console.log('xxx')
   }, [pdfPageNumber, pageTables]);
 
   useEffect(() => {
@@ -123,9 +125,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
   }, [isDrawingEnabled])
 
-  
-
-
 
   // Render delete icon
   const renderIcon = (icon: HTMLImageElement) => {
@@ -148,12 +147,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   // Delete object handler
   const deleteObject = (eventData: TPointerEvent, transform: any) => {
     const target = transform.target as unknown as RectWithData;    // get the object
-    // If there's a rectangle ID, remove associated tab and data
     const rectangleId = target.data?.rectangleId;
-    // if(rectangleId) {
-    //   rectangleMapping.removeTabForRectangle(rectangleId);
-    //   rectangleMapping.removeRectangle(rectangleId);
-    // }
     
     const canvas = target.canvas;   // get its canvas
     if (canvas) {
@@ -257,10 +251,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     isDrawingRef.current = true;
     const pointer = eventData.viewportPoint;
 
-    // Create a unique ID for this rectangle
-    const rectangleId = `page-${pdfPageNumber}-rect-${rectCounter.current}`;
-    rectCounter.current += 1;
-
     // Create new rectangle
     rectRef.current = new Rect({
       left: pointer.x,
@@ -273,10 +263,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     }) as RectWithData;
 
     // Add data property to the rectangle
-    rectRef.current.data = { 
-      rectangleId,
-      pdfPageNumber
-    };
+    rectRef.current.data = {};
 
     rectRef.current.controls.deleteControl = new Control({
       // positioning delete controll icon relative to the rectangle
@@ -337,12 +324,24 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
   const handleMouseUp = () => {
     if (isDrawingRef.current && rectRef.current && rectRef.current.width > 10 && rectRef.current.height > 10) {
-      const rectangleId = rectRef.current.data?.rectangleId;
+      const left = rectRef.current.left ?? 0;
+      const top = rectRef.current.top ?? 0;
+      const width = rectRef.current.width * (rectRef.current.scaleX ?? 1);
+      const height = rectRef.current.height * (rectRef.current.scaleY ?? 1);
       
-      // Store rectangle in mapping
-      // if (rectangleId) {
-      //   rectangleMapping.storeRectangle(rectangleId, rectRef.current);
-      // }
+      const tableCoordinates: TableBoundingBox = {
+        upperLeftX: left,
+        upperLeftY: top,
+        lowerRightX: left + width,
+        lowerRightY: top + height
+      };
+      
+      // Add the record to get a rectangleId with final dimensions
+      const rectangleId = addTableRecord(pdfPageNumber, tableCoordinates);
+      
+      // Assign the ID to the rectangle's data property
+      rectRef.current.data = { rectangleId };
+      
     }
 
     isDrawingRef.current = false;

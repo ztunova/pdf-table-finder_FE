@@ -16,6 +16,7 @@ interface TableDataContextType {
     setTableData: (data: TableDetectionResponse | null) => void;
     getTablesForPage: (pageNumber: number) => TableData[];
     addTableRecord: (pageNumber: number, tableCoordinates: TableBoundingBox) => string;
+    deleteTableRecord: (rectangleId: string) => void;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
@@ -95,7 +96,46 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       });
 
       return rectId;
+    }
 
+    const deleteTableRecord = (rectangleId: string): void => {
+      setTableDataState(prevTableData => {
+        console.log('id', rectangleId);
+        console.log("Current tableData state:", prevTableData);
+        
+        if (!prevTableData) {
+          return null;
+        }
+        
+        // Create new object without the specified record
+        const updatedTableData = { ...prevTableData };
+        delete updatedTableData[rectangleId];
+        console.log('updated tableData', updatedTableData);
+        
+        return updatedTableData;
+      });
+
+      setTablesPerPage(prevTablesPerPage => {
+        const updatedTablesPerPage = { ...prevTablesPerPage };
+        
+        Object.keys(updatedTablesPerPage).forEach((pageNumberStr) => {
+          const pageNumber = parseInt(pageNumberStr, 10);
+          const tableIds = updatedTablesPerPage[pageNumber];
+          
+          // Filter out the rectangleId from the array
+          const filteredTableIds = tableIds.filter(id => id !== rectangleId);
+          
+          // Update the page with filtered IDs or delete the page entry if empty
+          if (filteredTableIds.length > 0) {
+            updatedTablesPerPage[pageNumber] = filteredTableIds;
+          } else {
+            delete updatedTablesPerPage[pageNumber];
+          }
+        });
+        
+        console.log('updated tablesPerPage', updatedTablesPerPage);
+        return updatedTablesPerPage;
+      });
     }
   
     return (
@@ -106,6 +146,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           setTableData,
           getTablesForPage,
           addTableRecord,
+          deleteTableRecord,
         }}
       >
         {children}

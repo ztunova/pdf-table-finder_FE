@@ -63,14 +63,14 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   // Stores the current rectangle being drawn
   // Used to keep track of which rectangle we're currently drawing so we can update it during mouse move
   const rectRef = useRef<RectWithData>();
-  const { getTablesForPage, addTableRecord, tableData } = useTableData();
-  const pageTables = getTablesForPage(pdfPageNumber)
+  const tablesContext = useTableData();
+  const pageTables = tablesContext.getTablesForPage(pdfPageNumber)
 
   useEffect(() => {
-    console.log("table data", tableData)
-    console.log(`Tables for page ${pdfPageNumber}:`, getTablesForPage(pdfPageNumber));
+    console.log("table data", tablesContext.tableData)
+    console.log(`Tables for page ${pdfPageNumber}:`, tablesContext.getTablesForPage(pdfPageNumber));
     // console.log('xxx')
-  }, [pdfPageNumber, pageTables]);
+  }, [pdfPageNumber, tablesContext.tablesPerPage]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -148,6 +148,11 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   const deleteObject = (eventData: TPointerEvent, transform: any) => {
     const target = transform.target as unknown as RectWithData;    // get the object
     const rectangleId = target.data?.rectangleId;
+    console.log('delete rect id', rectangleId)
+    if (!rectangleId) {
+      return;
+    }
+    tablesContext.deleteTableRecord(rectangleId)
     
     const canvas = target.canvas;   // get its canvas
     if (canvas) {
@@ -337,7 +342,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       };
       
       // Add the record to get a rectangleId with final dimensions
-      const rectangleId = addTableRecord(pdfPageNumber, tableCoordinates);
+      const rectangleId = tablesContext.addTableRecord(pdfPageNumber, tableCoordinates);
       
       // Assign the ID to the rectangle's data property
       rectRef.current.data = { rectangleId };

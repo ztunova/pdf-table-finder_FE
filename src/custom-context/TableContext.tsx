@@ -17,6 +17,7 @@ interface TableDataContextType {
     getTablesForPage: (pageNumber: number) => TableData[];
     addTableRecord: (pageNumber: number, tableCoordinates: TableBoundingBox) => string;
     deleteTableRecord: (rectangleId: string) => void;
+    updateTableCoordinates: (rectangleId: string, newCoordinates: TableBoundingBox) => void;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
@@ -37,6 +38,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
             }
             
             tables.forEach((table, index) => {
+              console.log("XX", table)
                 const rectId: string = uuidv4() 
                 const tableRecord: TableData = {
                   id: rectId,
@@ -137,6 +139,24 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         return updatedTablesPerPage;
       });
     }
+
+    // trigger re-render when coordinates change
+    const updateTableCoordinates = (rectangleId: string, newCoordinates: TableBoundingBox): void => {
+      setTableDataState(prevTableData => {
+        if (!prevTableData || !prevTableData[rectangleId]) {
+          console.log(`Table record with ID ${rectangleId} not found`);
+          return prevTableData;
+        }
+        
+        return {
+          ...prevTableData,
+          [rectangleId]: {
+            ...prevTableData[rectangleId],
+            coordinates: newCoordinates
+          }
+        };
+      });
+    };
   
     return (
       <TableDataContext.Provider
@@ -147,6 +167,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           getTablesForPage,
           addTableRecord,
           deleteTableRecord,
+          updateTableCoordinates,
         }}
       >
         {children}

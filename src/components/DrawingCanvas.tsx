@@ -118,12 +118,18 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
     canvas.on('object:modified', function(e) {
       if (e.target) {
-        // Type assertion to our extended type
-        const targetWithData = e.target as unknown as RectWithData;
+        const targetWithData = e.target as RectWithData;
         
         if (targetWithData.data?.rectangleId) {
           const rectId = targetWithData.data.rectangleId;
-          // rectangleMapping.storeRectangle(rectId, targetWithData);
+          console.log("modified rect id", targetWithData)
+          const newCoords:TableBoundingBox = {
+            upperLeftX: targetWithData.left,
+            upperLeftY: targetWithData.top,
+            lowerRightX: targetWithData.left + targetWithData.width * targetWithData.scaleX,
+            lowerRightY: targetWithData.top + targetWithData.height * targetWithData.scaleY
+          }
+          tablesContext.updateTableCoordinates(rectId, newCoords)
         }
       }
     });
@@ -135,7 +141,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       canvas.dispose();
     };
   }, [width, height]);
-  // }, [width, height, rectangleMapping]);
 
   useEffect(() => {
     const canvas = fabricRef.current

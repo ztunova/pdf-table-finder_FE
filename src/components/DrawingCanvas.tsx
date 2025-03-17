@@ -67,9 +67,43 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   const pageTables = tablesContext.getTablesForPage(pdfPageNumber)
 
   useEffect(() => {
-    console.log("table data", tablesContext.tableData)
-    console.log(`Tables for page ${pdfPageNumber}:`, tablesContext.getTablesForPage(pdfPageNumber));
-    // console.log('xxx')
+    // console.log("table data", tablesContext.tableData)
+    console.log('xxx')
+    const canvas = fabricRef.current
+    if (!canvas) {
+      return;
+    }
+
+    const rectanglesForPage = tablesContext.getTablesForPage(pdfPageNumber);
+    console.log(`Tables for page ${pdfPageNumber}:`, rectanglesForPage);
+    rectanglesForPage.forEach(rectangle => {
+      console.log(rectangle)
+      const {upperLeftX, upperLeftY, lowerRightX, lowerRightY} = rectangle.coordinates
+      console.log("coord", upperLeftX, upperLeftY, lowerRightX, lowerRightY)
+      const width = lowerRightX - upperLeftX;
+      const height = lowerRightY - upperLeftY;
+
+      // Create new rectangle to canvas
+      const canvasRect = new Rect({
+        left: upperLeftX,
+        top: upperLeftY,
+        width: width,
+        height: height,
+        fill: 'transparent',
+        stroke: 'red',
+        strokeWidth: 2,
+      }) as RectWithData;
+
+      canvasRect.data = {
+        rectangleId: rectangle.id
+      }
+
+      canvas.add(canvasRect)
+
+    })
+
+    canvas.renderAll()
+
   }, [pdfPageNumber, tablesContext.tablesPerPage]);
 
   useEffect(() => {

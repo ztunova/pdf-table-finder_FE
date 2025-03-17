@@ -74,6 +74,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       return;
     }
 
+    clearCanvas()
     const rectanglesForPage = tablesContext.getTablesForPage(pdfPageNumber);
     console.log(`Tables for page ${pdfPageNumber}:`, rectanglesForPage);
     rectanglesForPage.forEach(rectangle => {
@@ -388,8 +389,12 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   };
 
   const clearCanvas = () => {
-    if (fabricRef.current) {
-      fabricRef.current.clear();
+    const canvas = fabricRef.current
+    if (canvas) {
+      const objects = canvas.getObjects();
+      for (let i = objects.length - 1; i >= 0; i--) {
+        canvas.remove(objects[i]);
+      }
     }
   };
 

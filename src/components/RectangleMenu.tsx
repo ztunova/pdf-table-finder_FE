@@ -41,7 +41,13 @@ const RectangleMenu = () => {
     };
 
     const handleDeleteClick = () => {
-        console.log("DELETE")
+        const selectedRectangleId = tablesContext.selectedRectangleId
+        if (!selectedRectangleId) {
+            return
+        }
+
+        console.log("DELETE", selectedRectangleId)
+        tablesContext.deleteTableRecord(selectedRectangleId)
     };
     
     // Extraction methods available to the user

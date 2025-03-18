@@ -109,15 +109,37 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
 
     const deleteTableRecord = (rectangleId: string): void => {
+      // Input validation
+      if (!rectangleId) {
+        console.log('Invalid rectangleId');
+        return;
+      }
+
+      // If there's no tableData, nothing to delete
+      if (!tableData) {
+        console.log('No table data available');
+        return;
+      }
+
+      // Check if the record exists
+      if (!tableData[rectangleId]) {
+        console.log(`Table with ID ${rectangleId} not found`);
+        return;
+      }
+
+      console.log('Deleting table with id:', rectangleId);
+      console.log("Current tableData state:", tableData);
+
+      // If this is the currently selected rectangle, deselect it
+      if (selectedRectangleId === rectangleId) {
+        console.log("Deselecting currently selected rectangle");
+        setSelectedRectangleIdState(null);
+      }
+
+      // Remove the record from tableData
       setTableDataState(prevTableData => {
-        console.log('id', rectangleId);
-        console.log("Current tableData state:", prevTableData);
+        if (!prevTableData) return null;
         
-        if (!prevTableData) {
-          return null;
-        }
-        
-        // Create new object without the specified record
         const updatedTableData = { ...prevTableData };
         delete updatedTableData[rectangleId];
         console.log('updated tableData', updatedTableData);
@@ -125,6 +147,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         return updatedTableData;
       });
 
+      // Remove references to this table from tablesPerPage
       setTablesPerPage(prevTablesPerPage => {
         const updatedTablesPerPage = { ...prevTablesPerPage };
         
@@ -146,7 +169,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         console.log('updated tablesPerPage', updatedTablesPerPage);
         return updatedTablesPerPage;
       });
-    }
+    };
 
     // trigger re-render when coordinates change
     const updateTableCoordinates = (rectangleId: string, newCoordinates: TableBoundingBox): void => {

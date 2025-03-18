@@ -24,13 +24,6 @@ interface RectangleCoordinates {
   rectHeight: number;
 }
 
-const deleteIcon = document.createElement('img');
-deleteIcon.src = 'data:image/svg+xml;base64,' + btoa(`
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="black" stroke-width="2">
-    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/>
-  </svg>
-`);
-
 const sendIcon = document.createElement('img');
 sendIcon.src = 'data:image/svg+xml;base64,' + btoa(`
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="black" stroke-width="2">
@@ -246,7 +239,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   }, [isDrawingEnabled])
 
 
-  // Render delete icon
   const renderIcon = (icon: HTMLImageElement) => {
     return function(
       ctx: CanvasRenderingContext2D,  // canvas context to draw on
@@ -264,24 +256,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     }
   };
 
-  // Delete object handler
-  const deleteObject = (eventData: TPointerEvent, transform: any) => {
-    const target = transform.target as unknown as RectWithData;    // get the object
-    const rectangleId = target.data?.rectangleId;
-    console.log('delete rect id', rectangleId)
-    if (!rectangleId) {
-      return;
-    }
-    tablesContext.deleteTableRecord(rectangleId)
-    
-    const canvas = target.canvas;   // get its canvas
-    if (canvas) {
-      canvas.remove(target);
-      canvas.requestRenderAll();    // tells Fabric.js to redraw the canvas
-    }
-
-    return true;
-  };
 
   // send get request to BE API with coordinates of selected rectangle to translate table 
   const sendRectCoordinates = async(eventData: TPointerEvent, transform: any) => {
@@ -403,23 +377,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
     // Add data property to the rectangle
     rectRef.current.data = {};
-
-    rectRef.current.controls.deleteControl = new Control({
-      // positioning delete controll icon relative to the rectangle
-      // x, y range is <-0.5; 0.5> : 
-      // +0.5 means 50% of the drawn rectangle width (for x) or height (for y) to the right (for x) or upward (for y) from the center
-      // -0.5 is to the left (for x) or downward (for y)
-      // 0 would be at the center
-      x: 0.5,
-      y: -0.5,
-      // additional pixel offset: positive number moves right (for x) or down (for y), negative number moves left (for x) or up (for y) (as for x, y axes)
-      offsetX: 16,
-      offsetY: -16,
-      // defines how mouse cursor will look like when hovering over the control (pointer => pointing hand) 
-      cursorStyle: 'pointer',
-      mouseUpHandler: deleteObject,
-      render: renderIcon(deleteIcon),
-    });
 
     rectRef.current.controls.sendControl = new Control({
       x: 0.5,

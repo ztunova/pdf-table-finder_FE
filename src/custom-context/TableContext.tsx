@@ -16,6 +16,7 @@ interface TableDataContextType {
     tableData: TableDataMap | null;
     tablesPerPage: PageTablesMap;
     selectedRectangleId: string | null;
+    extractedTables: string[];
     setTableData: (data: TableDetectionResponse | null) => void;
     getTablesForPage: (pageNumber: number) => TableData[];
     addTableRecord: (pageNumber: number, tableCoordinates: TableBoundingBox) => string;
@@ -32,6 +33,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [tableData, setTableDataState] = useState<TableDataMap | null>(null);
     const [tablesPerPage, setTablesPerPage] = useState<PageTablesMap>({});
     const [selectedRectangleId, setSelectedRectangleIdState] = useState<string | null>(null);
+    const [extractedTables, setExtractedTablesState] = useState<string[]>([]);
 
     const setTableData = (data: TableDetectionResponse | null) => {
       if (data && data.allRectangles) {
@@ -61,6 +63,9 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         setTableDataState(newTableDataMap);
         setTablesPerPage(newTablesPerPage);
+
+        // Reset extractedTables to empty since we're loading new data
+        setExtractedTablesState([]);
       }
     };
 
@@ -146,7 +151,8 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         const updatedTableData = { ...prevTableData };
         delete updatedTableData[rectangleId];
         console.log('updated tableData', updatedTableData);
-        
+
+        setTimeout(() => updateExtractedTableIds(), 0);
         return updatedTableData;
       });
 
@@ -180,6 +186,11 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (!prevTableData || !prevTableData[rectangleId]) {
           console.log(`Table record with ID ${rectangleId} not found`);
           return prevTableData;
+        }
+
+        // If the table has extracted data, we need to make sure it's still in our extractedTables list
+        if (prevTableData[rectangleId].extractedData !== null) {
+          setTimeout(() => updateExtractedTableIds(), 0);
         }
         
         return {
@@ -216,15 +227,35 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           console.log(`Table record with ID ${rectangleId} not found for updating extracted data`);
           return prevTableData;
         }
-        
-        return {
+
+        const updatedData = {
           ...prevTableData,
           [rectangleId]: {
             ...prevTableData[rectangleId],
             extractedData: data
           }
         };
+
+        // Schedule the update to extractedTables after state is updated
+        setTimeout(() => updateExtractedTableIds(), 0);
+        return updatedData;
+
       });
+    };
+
+    const updateExtractedTableIds = (): void => {
+      if (!tableData) {
+        setExtractedTablesState([]);
+        return;
+      }
+
+      // Filter tableData records where extractedData is not null and collect their IDs
+      const extractedTableIds = Object.keys(tableData).filter(id => 
+        tableData[id].extractedData !== null
+      );
+
+      setExtractedTablesState(extractedTableIds);
+      console.log('Updated extracted tables list:', extractedTableIds);
     };
   
     return (
@@ -233,6 +264,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           tableData,
           tablesPerPage,
           selectedRectangleId,
+          extractedTables,
           setTableData,
           getTablesForPage,
           addTableRecord,

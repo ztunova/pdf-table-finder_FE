@@ -23,4 +23,5 @@ export interface TableData {
   title: string,
   pdfPageNumber: number,
   coordinates: TableBoundingBox,
+  extractedData: string[][] | null,
 }

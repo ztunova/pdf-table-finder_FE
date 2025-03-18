@@ -1,6 +1,18 @@
 import { Box, Button, MenuItem, Paper, Select, SelectChangeEvent, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTableData } from "../custom-context/TableContext";
+import axios from "axios";
+
+
+interface ExtractTableRequestParams {
+    pdfPageNumber: number;
+    upperLeftX: number;
+    upperLeftY: number;
+    lowerRightX: number;
+    lowerRightY: number;
+    // rectWidth: number;
+    // rectHeight: number;
+  }
 
 enum TableExtractionMethods {
     PYMU = 'pymu',
@@ -36,8 +48,63 @@ const RectangleMenu = () => {
         setExtractionMethod(event.target.value as TableExtractionMethods);
     };
 
-    const handleExtractClick = () => {
+    const handleExtractClick = async() => {
         console.log(`Extract button clicked with method: ${extractionMethod}`);
+        const selectedRectangleId = tablesContext.selectedRectangleId
+        if (!selectedRectangleId) {
+            return
+        }
+        const selectedRectangle = tablesContext.getTableDataById(selectedRectangleId)
+        console.log("Extraction for rect data", selectedRectangle)
+        if (!selectedRectangle) {
+            throw new Error("Selected rectangle doesn't exist");
+        }
+
+        const rectData: ExtractTableRequestParams = {
+            pdfPageNumber: selectedRectangle?.pdfPageNumber,
+            upperLeftX: selectedRectangle.coordinates.upperLeftX,
+            upperLeftY: selectedRectangle.coordinates.upperLeftY,
+            lowerRightX: selectedRectangle.coordinates.lowerRightX,
+            lowerRightY: selectedRectangle.coordinates.lowerRightY,
+            // rectWidth: target.width * target.scaleX,
+            // rectHeight: target.height * target.scaleY,
+        }
+
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/pdf/table/${extractionMethod}`, {
+                params: rectData
+              });
+
+            if (response.status === 200) {
+                console.log('Coordinates sent successfully:', response.data);
+                tablesContext.updateExtractedData(selectedRectangleId, response.data.tableData)
+            }
+        }
+        catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    console.error(`Error status: ${error.response.status}`);
+                    console.error('Error data:', error.response.data);
+                    
+                    // Handle specific status codes
+                    if (error.response.status === 404) {
+                        console.error('Resource not found');
+                    } 
+                    else if (error.response.status === 401) {
+                        console.error('Unauthorized access');
+                    } 
+                    else if (error.response.status === 500) {
+                        console.error('Server error');
+                    }
+                } 
+                else {
+                    console.error('No response received:', error.message);
+                }
+            } 
+            else {
+                console.error('Error sending coordinates:', error);
+            }
+        }
     };
 
     const handleDeleteClick = () => {

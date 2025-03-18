@@ -23,6 +23,7 @@ interface TableDataContextType {
     updateTableCoordinates: (rectangleId: string, newCoordinates: TableBoundingBox) => void;
     setSelectedRectangle: (rectangleId: string | null) => void;
     getTableDataById: (rectangleId: string) => TableData | null;
+    updateExtractedData: (rectangleId: string, data: string[][] | null) => void;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
@@ -51,6 +52,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
                   title: `Page ${pageNumber}, Table ${index}:`,
                   pdfPageNumber: pageNumber,
                   coordinates: table,
+                  extractedData: null,
                 }
                 newTableDataMap[rectId] = tableRecord
                 newTablesPerPage[pageNumber].push(rectId);
@@ -85,6 +87,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         title: "some title",
         pdfPageNumber: pageNumber,
         coordinates: tableCoordinates,
+        extractedData: null,
       }
 
       // Update tableData state with the new record
@@ -201,6 +204,28 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       
       return tableData[rectangleId] || null;
     };
+
+    const updateExtractedData = (rectangleId: string, data: string[][] | null): void => {
+      if (!rectangleId) {
+        console.log('Invalid rectangleId for updating extracted data');
+        return;
+      }
+      
+      setTableDataState(prevTableData => {
+        if (!prevTableData || !prevTableData[rectangleId]) {
+          console.log(`Table record with ID ${rectangleId} not found for updating extracted data`);
+          return prevTableData;
+        }
+        
+        return {
+          ...prevTableData,
+          [rectangleId]: {
+            ...prevTableData[rectangleId],
+            extractedData: data
+          }
+        };
+      });
+    };
   
     return (
       <TableDataContext.Provider
@@ -215,6 +240,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           updateTableCoordinates,
           setSelectedRectangle,
           getTableDataById,
+          updateExtractedData,
         }}
       >
         {children}

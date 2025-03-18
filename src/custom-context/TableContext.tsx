@@ -2,6 +2,8 @@ import { createContext, ReactNode, useContext, useState } from "react";
 import { TableBoundingBox, TableData, TableDetectionResponse } from "../shared-types";
 import { v4 as uuidv4 } from 'uuid';
 
+// PDF PAGE NUMBER IS COUNTED FROM 0 HERE BUT FROM 1 IN DOCUMENT!!!
+
 type TableDataMap = {
   [rectangleId: string]: TableData;
 };
@@ -13,11 +15,14 @@ type PageTablesMap = {
 interface TableDataContextType {
     tableData: TableDataMap | null;
     tablesPerPage: PageTablesMap;
+    selectedRectangleId: string | null;
     setTableData: (data: TableDetectionResponse | null) => void;
     getTablesForPage: (pageNumber: number) => TableData[];
     addTableRecord: (pageNumber: number, tableCoordinates: TableBoundingBox) => string;
     deleteTableRecord: (rectangleId: string) => void;
     updateTableCoordinates: (rectangleId: string, newCoordinates: TableBoundingBox) => void;
+    setSelectedRectangle: (rectangleId: string | null) => void;
+    getTableDataById: (rectangleId: string) => TableData | null;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
@@ -25,6 +30,7 @@ const TableDataContext = createContext<TableDataContextType | undefined>(undefin
 export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [tableData, setTableDataState] = useState<TableDataMap | null>(null);
     const [tablesPerPage, setTablesPerPage] = useState<PageTablesMap>({});
+    const [selectedRectangleId, setSelectedRectangleIdState] = useState<string | null>(null);
 
     const setTableData = (data: TableDetectionResponse | null) => {
       if (data && data.allRectangles) {
@@ -43,6 +49,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
                 const tableRecord: TableData = {
                   id: rectId,
                   title: `Page ${pageNumber}, Table ${index}:`,
+                  pdfPageNumber: pageNumber,
                   coordinates: table,
                 }
                 newTableDataMap[rectId] = tableRecord
@@ -76,6 +83,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       const tableRecord: TableData = {
         id: rectId,
         title: "some title",
+        pdfPageNumber: pageNumber,
         coordinates: tableCoordinates,
       }
 
@@ -157,17 +165,33 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         };
       });
     };
+
+    const setSelectedRectangle = (rectangleId: string | null): void => {
+      console.log("SELECTED RECTANGLE CHANGE")
+      setSelectedRectangleIdState(rectangleId);
+    };
+
+    const getTableDataById = (rectangleId: string): TableData | null => {
+      if (!tableData || !rectangleId) {
+        return null;
+      }
+      
+      return tableData[rectangleId] || null;
+    };
   
     return (
       <TableDataContext.Provider
         value={{
           tableData,
           tablesPerPage,
+          selectedRectangleId,
           setTableData,
           getTablesForPage,
           addTableRecord,
           deleteTableRecord,
           updateTableCoordinates,
+          setSelectedRectangle,
+          getTableDataById,
         }}
       >
         {children}

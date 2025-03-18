@@ -21,5 +21,6 @@ export interface TableDetectionResponse {
 export interface TableData {
   id: string,
   title: string,
+  pdfPageNumber: number,
   coordinates: TableBoundingBox,
 }

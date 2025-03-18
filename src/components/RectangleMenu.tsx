@@ -1,5 +1,6 @@
 import { Box, Button, MenuItem, Paper, Select, SelectChangeEvent, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTableData } from "../custom-context/TableContext";
 
 enum TableExtractionMethods {
     PYMU = 'pymu',
@@ -7,9 +8,29 @@ enum TableExtractionMethods {
     CHATGPT = 'chatgpt',
 }
 
-const RectangleMenu = ({ visible = true, left = 0, top = 0,}) => {
-
+const RectangleMenu = () => {
+    const tablesContext = useTableData();
     const [extractionMethod, setExtractionMethod] = useState<TableExtractionMethods>(TableExtractionMethods.PYMU);
+    const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
+
+    // Update menu position when selected rectangle changes
+    useEffect(() => {
+        if (tablesContext.selectedRectangleId) {
+            const rectangleData = tablesContext.getTableDataById(tablesContext.selectedRectangleId);
+            console.log("rect data: ", rectangleData)
+            if (rectangleData && rectangleData.coordinates) {
+                const { lowerRightX, upperLeftY } = rectangleData.coordinates;
+                
+                // Position the menu at the top-right corner of the rectangle
+                // Add a small offset (10px) for better visual separation
+                setMenuPosition({
+                    left: lowerRightX + 10,
+                    top: upperLeftY
+                });
+            }
+        }
+    }, [tablesContext.selectedRectangleId, tablesContext.getTableDataById]);
+
 
     const handleMethodChange = (event: SelectChangeEvent) => {
         setExtractionMethod(event.target.value as TableExtractionMethods);
@@ -31,20 +52,20 @@ const RectangleMenu = ({ visible = true, left = 0, top = 0,}) => {
     ];
   
     // If not visible, don't render anything
-    if (!visible) return null;
+    if (!tablesContext.selectedRectangleId) return null;
   
     return (
       <Paper
         elevation={3}
         sx={{
-          position: 'absolute',
-          left: `${left}px`,
-          top: `${top}px`,
-          width: '180px',
-          padding: 2,
-          borderRadius: 1,
-          zIndex: 1000
-        }}
+            position: 'absolute',
+            left: `${menuPosition.left}px`,
+            top: `${menuPosition.top}px`,
+            width: '180px',
+            padding: 2,
+            borderRadius: 1,
+            zIndex: 1000
+          }}
       >
         <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
           Rectangle Options

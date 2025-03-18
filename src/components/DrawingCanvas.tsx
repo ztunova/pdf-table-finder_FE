@@ -5,6 +5,7 @@ import axios from 'axios';
 // import { useRectangleMapping } from '../custom-context/RectangleTableMappingContext';
 import { useTableData } from '../custom-context/TableContext';
 import { RectWithData, TableBoundingBox } from '../shared-types';
+import RectangleMenu from './RectangleMenu';
 
 // pdf page number je cislovane od 1 na FE, od 0 na BE
 interface DrawingCanvasProps {
@@ -37,6 +38,31 @@ sendIcon.src = 'data:image/svg+xml;base64,' + btoa(`
   </svg>
 `);
 
+const activeCanvasRegistry = {
+  activeCanvasId: null as number | null,
+  canvases: new Map<number, Canvas>(),
+  
+  registerCanvas(id: number, canvas: Canvas) {
+    this.canvases.set(id, canvas);
+  },
+  
+  unregisterCanvas(id: number) {
+    this.canvases.delete(id);
+  },
+  
+  setActiveCanvas(id: number) {
+    if (id !== this.activeCanvasId) {
+      this.canvases.forEach((canvas, canvasId) => {
+        if (canvasId !== id) {
+          canvas.discardActiveObject();
+          canvas.renderAll();
+        }
+      });
+      this.activeCanvasId = id;
+    }
+  }
+};
+
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, width, height }) => {
   // const rectangleMapping = useRectangleMapping();
   const rectCounter = useRef<number>(1);
@@ -65,6 +91,43 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   const rectRef = useRef<RectWithData>();
   const tablesContext = useTableData();
   const pageTables = tablesContext.getTablesForPage(pdfPageNumber)
+  const [isSelectedRectOnPage, setIsSelectedRectOnPage] = useState(false);
+
+  // Update the state when selected rectangle changes or page changes
+  useEffect(() => {
+    const checkIfSelectedRectangleOnCurrentPage = () => {
+      if (!tablesContext.selectedRectangleId) {
+        setIsSelectedRectOnPage(false);
+        return;
+      }
+      
+      const selectedRectangelData = tablesContext.getTableDataById(tablesContext.selectedRectangleId);
+      
+      // If the table exists and is on the current page (accounting for zero-indexed vs one-indexed)
+      const isOnCurrentPage = selectedRectangelData !== null && 
+                          tablesContext.tablesPerPage[pdfPageNumber-1]?.includes(tablesContext.selectedRectangleId);
+      
+      setIsSelectedRectOnPage(isOnCurrentPage);
+      
+      // If the selected rectangle is on this page, make sure this canvas is active
+      if (isOnCurrentPage && fabricRef.current) {
+        activeCanvasRegistry.setActiveCanvas(pdfPageNumber);
+        
+        // Find and select the correct rectangle object in this canvas
+        const objects = fabricRef.current.getObjects() as RectWithData[];
+        const rectToSelect = objects.find(
+          obj => obj.data?.rectangleId === tablesContext.selectedRectangleId
+        );
+        
+        if (rectToSelect && !fabricRef.current.getActiveObject()) {
+          fabricRef.current.setActiveObject(rectToSelect);
+          fabricRef.current.renderAll();
+        }
+      }
+    };
+    
+    checkIfSelectedRectangleOnCurrentPage();
+  }, [tablesContext.selectedRectangleId, pdfPageNumber, tablesContext.tablesPerPage, pdfPageNumber]);
 
   useEffect(() => {
     // console.log("table data", tablesContext.tableData)
@@ -116,6 +179,19 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       height: height,
     });
 
+    canvas.on('mouse:down', () => {
+      // Set this canvas as active when interacting with it
+      activeCanvasRegistry.setActiveCanvas(pdfPageNumber);
+    });
+    canvas.on('selection:created', handleObjectSelected);
+    canvas.on('selection:updated', handleObjectSelected);
+    canvas.on('selection:cleared', () => {
+      // Only clear the global selection if this is the active canvas
+      if (activeCanvasRegistry.activeCanvasId === pdfPageNumber) {
+        tablesContext.setSelectedRectangle(null);
+      }
+    });
+
     canvas.on('object:modified', function(e) {
       if (e.target) {
         const targetWithData = e.target as RectWithData;
@@ -135,9 +211,13 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     });
 
     fabricRef.current = canvas;
+    activeCanvasRegistry.registerCanvas(pdfPageNumber, canvas);
 
     // Cleanup on unmount
     return () => {
+      canvas.off('selection:created', handleObjectSelected);
+      canvas.off('selection:updated', handleObjectSelected);
+      activeCanvasRegistry.unregisterCanvas(pdfPageNumber);
       canvas.dispose();
     };
   }, [width, height]);
@@ -288,10 +368,24 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     }
   }
 
+
+  const handleObjectSelected = (e: any) => {
+    const selectedObject = e.selected?.[0] as RectWithData;
+    
+    if (selectedObject && selectedObject.data?.rectangleId) {
+      // Set this canvas as active
+      activeCanvasRegistry.setActiveCanvas(pdfPageNumber);
+      tablesContext.setSelectedRectangle(selectedObject.data.rectangleId);
+    }
+  };
+
   const handleMouseDown = (eventData: TPointerEventInfo<TPointerEvent>) => {
     if (!isDrawingEnabled || !fabricRef.current) {
       return;
     }
+
+    // Set this canvas as active when drawing
+    activeCanvasRegistry.setActiveCanvas(pdfPageNumber);
 
     isDrawingRef.current = true;
     const pointer = eventData.viewportPoint;
@@ -406,6 +500,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}>
       <canvas ref={canvasRef} />
+      {isSelectedRectOnPage && <RectangleMenu />}
     </div>
   );
 };

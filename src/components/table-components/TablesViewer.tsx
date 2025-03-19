@@ -40,6 +40,13 @@ const TablesViewer: React.FC = () => {
     }
   }, [tablesContext.selectedRectangleId, tablesContext.extractedTables]);
 
+  useEffect(() => {
+    if (activeTabId !== tablesContext.selectedRectangleId) {
+      console.log("DIFFERENT ACTIVE TAB AND RECT")
+      tablesContext.setSelectedRectangle(activeTabId)
+    }
+  }, [activeTabId])
+
   // Handle tab click
   const handleTabClick = (tabId: string) => {
     setActiveTabId(tabId);

@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { TableBoundingBox, TableData, TableDetectionResponse } from "../shared-types";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -34,6 +34,10 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [tablesPerPage, setTablesPerPage] = useState<PageTablesMap>({});
     const [selectedRectangleId, setSelectedRectangleIdState] = useState<string | null>(null);
     const [extractedTables, setExtractedTablesState] = useState<string[]>([]);
+
+    useEffect(() => {
+      updateExtractedTableIds();
+    }, [tableData]);
 
     const setTableData = (data: TableDetectionResponse | null) => {
       if (data && data.allRectangles) {
@@ -152,7 +156,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         delete updatedTableData[rectangleId];
         console.log('updated tableData', updatedTableData);
 
-        setTimeout(() => updateExtractedTableIds(), 0);
         return updatedTableData;
       });
 
@@ -188,11 +191,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           return prevTableData;
         }
 
-        // If the table has extracted data, we need to make sure it's still in our extractedTables list
-        if (prevTableData[rectangleId].extractedData !== null) {
-          setTimeout(() => updateExtractedTableIds(), 0);
-        }
-        
         return {
           ...prevTableData,
           [rectangleId]: {
@@ -236,10 +234,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           }
         };
 
-        // Schedule the update to extractedTables after state is updated
-        setTimeout(() => updateExtractedTableIds(), 0);
         return updatedData;
-
       });
     };
 

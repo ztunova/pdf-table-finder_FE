@@ -4,20 +4,41 @@ import SingleTable from "./SingleTable";
 import { useTableData } from '../../custom-context/TableContext';
 
 const TablesViewer: React.FC = () => {
-  const { extractedTables, getTableDataById } = useTableData();
+  const tablesContext = useTableData();
   
   // Active tab state
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   
   // Set active tab when tables change
   useEffect(() => {
-    // If no active tab or active tab doesn't exist in extractedTables
-    if (!activeTabId || !extractedTables.includes(activeTabId)) {
-      // Set to first available table or null if empty
-      setActiveTabId(extractedTables.length > 0 ? extractedTables[0] : null);
+    console.log("SELECTED TAB CHANGE")
+    if (tablesContext.selectedRectangleId && tablesContext.extractedTables.includes(tablesContext.selectedRectangleId)) {
+      console.log("SET SELECTED TAB TO SELECTED RECT")
+      setActiveTabId(tablesContext.selectedRectangleId);
     }
-    console.log("extracted tables",extractedTables)
-  }, [extractedTables, activeTabId]);
+    // no rectangle is currently selected
+    else {
+      if (tablesContext.extractedTables.length > 0) {
+        if (activeTabId != null) {
+          if (!tablesContext.extractedTables.includes(activeTabId)) {
+            console.log("ACTIVE TAB NOT IN EXTR TABLES => SELECT OTHER TAB")
+            const newActiveTabId = tablesContext.extractedTables[tablesContext.extractedTables.length - 1];
+            setActiveTabId(newActiveTabId);
+          }
+          else {
+            console.log("KEEP CURRENT TAB")
+          }
+        }
+        else {
+          console.log("NO RECT AND NO TAB SELECTED")
+        }
+      }
+      else {
+        console.log("TAB NULL")
+        setActiveTabId(null)
+      }
+    }
+  }, [tablesContext.selectedRectangleId, tablesContext.extractedTables]);
 
   // Handle tab click
   const handleTabClick = (tabId: string) => {
@@ -26,14 +47,14 @@ const TablesViewer: React.FC = () => {
 
   // Generate tab title from table data
   const getTabTitle = (tableId: string) => {
-    const tableData = getTableDataById(tableId);
+    const tableData = tablesContext.getTableDataById(tableId);
     if (!tableData) return "Unknown Table";
     
     return tableData.title || `Table ${tableId.substring(0, 6)}...`;
   };
 
   // Handle empty state
-  if (extractedTables.length === 0) {
+  if (tablesContext.extractedTables.length === 0) {
     return (
       <div style={{ 
         height: '100%', 
@@ -59,7 +80,7 @@ const TablesViewer: React.FC = () => {
         overflowX: 'auto',
       }}>
         {/* Dynamic tabs for extracted tables */}
-        {extractedTables.map(tableId => (
+        {tablesContext.extractedTables.map(tableId => (
           <div
             key={tableId}
             onClick={() => handleTabClick(tableId)}

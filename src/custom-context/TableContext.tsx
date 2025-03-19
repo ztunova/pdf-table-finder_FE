@@ -148,6 +148,14 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         setSelectedRectangleIdState(null);
       }
 
+      // Check if the rectangle is in extractedTables list and remove it immediately
+      if (extractedTables.includes(rectangleId)) {
+        console.log(`Removing ${rectangleId} from extractedTables list`);
+        setExtractedTablesState(prevExtractedTables => 
+          prevExtractedTables.filter(id => id !== rectangleId)
+        );
+      }
+
       // Remove the record from tableData
       setTableDataState(prevTableData => {
         if (!prevTableData) return null;

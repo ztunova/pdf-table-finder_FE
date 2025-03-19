@@ -43,6 +43,7 @@ const TablesViewer: React.FC = () => {
   // Handle tab click
   const handleTabClick = (tabId: string) => {
     setActiveTabId(tabId);
+    tablesContext.setSelectedRectangle(tabId)
   };
 
   // Generate tab title from table data

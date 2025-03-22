@@ -8,8 +8,8 @@ import RectangleMenu from './RectangleMenu';
 // pdf page number je cislovane od 1 na FE, od 0 na BE
 interface DrawingCanvasProps {
   pdfPageNumber: number;
-  width: number;
-  height: number;
+  canvas_width: number;
+  canvas_height: number;
 }
 
 const activeCanvasRegistry = {
@@ -37,7 +37,7 @@ const activeCanvasRegistry = {
   }
 };
 
-export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, width, height }) => {
+export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, canvas_width, canvas_height }) => {
   // const rectangleMapping = useRectangleMapping();
   const rectCounter = useRef<number>(1);
 
@@ -66,6 +66,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
   const tablesContext = useTableData();
   const pageTables = tablesContext.getTablesForPage(pdfPageNumber)
   const [isSelectedRectOnPage, setIsSelectedRectOnPage] = useState(false);
+
+  const absoluteCoordsToPercentage = (value: number, total: number) => ((value / total) * 100);
+  const percentageCoordsToAbsolute = (percentage: number, total: number) => ((percentage * total) / 100); 
 
   // Update the state when selected rectangle changes or page changes
   useEffect(() => {
@@ -101,8 +104,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     };
     
     checkIfSelectedRectangleOnCurrentPage();
-  }, [tablesContext.selectedRectangleId, pdfPageNumber, tablesContext.tablesPerPage, pdfPageNumber]);
+  }, [tablesContext.selectedRectangleId, tablesContext.tablesPerPage, pdfPageNumber]);
 
+  // drawing rectangles per page
   useEffect(() => {
     // console.log("table data", tablesContext.tableData)
     console.log('xxx')
@@ -117,14 +121,21 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
     rectanglesForPage.forEach(rectangle => {
       console.log(rectangle)
       const {upperLeftX, upperLeftY, lowerRightX, lowerRightY} = rectangle.coordinates
+      const absUpperLeftX = percentageCoordsToAbsolute(upperLeftX, canvas_width)
+      const absUpperLeftY = percentageCoordsToAbsolute(upperLeftY, canvas_height)
+      const absLowerRightX = percentageCoordsToAbsolute(lowerRightX, canvas_width)
+      const absLowerRightY = percentageCoordsToAbsolute(lowerRightY, canvas_height)
+      
       console.log("coord", upperLeftX, upperLeftY, lowerRightX, lowerRightY)
-      const width = lowerRightX - upperLeftX;
-      const height = lowerRightY - upperLeftY;
+      const width = absLowerRightX - absUpperLeftX;
+      const height = absLowerRightY - absUpperLeftY;
+
+      console.log("POMOC", absUpperLeftX, absUpperLeftY, absLowerRightX, absLowerRightY, canvas_width, canvas_height)
 
       // Create new rectangle to canvas
       const canvasRect = new Rect({
-        left: upperLeftX,
-        top: upperLeftY,
+        left: absUpperLeftX,
+        top: absUpperLeftY,
         width: width,
         height: height,
         fill: 'transparent',
@@ -149,8 +160,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
 
     // Initialize Fabric canvas
     const canvas = new Canvas(canvasRef.current, {
-      width: width,
-      height: height,
+      width: canvas_width,
+      height: canvas_height,
     });
 
     canvas.on('mouse:down', () => {
@@ -194,7 +205,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, wid
       activeCanvasRegistry.unregisterCanvas(pdfPageNumber);
       canvas.dispose();
     };
-  }, [width, height]);
+  }, [canvas_width, canvas_height]);
 
   useEffect(() => {
     const canvas = fabricRef.current

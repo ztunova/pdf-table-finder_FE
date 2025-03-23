@@ -2,14 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Control, Rect, TPointerEvent, TPointerEventInfo, util } from 'fabric';
 import { useDrawing } from '../custom-context/DrawingContext';
 import { useTableData } from '../custom-context/TableContext';
-import { RectWithData, TableBoundingBox } from '../shared-types';
+import { percentageCoordsToAbsolute, RectWithData, TableBoundingBox } from '../shared-types';
 import RectangleMenu from './RectangleMenu';
 
 // pdf page number je cislovane od 1 na FE, od 0 na BE
 interface DrawingCanvasProps {
   pdfPageNumber: number;
-  canvas_width: number;
-  canvas_height: number;
+  canvasWidth: number;
+  canvasHeight: number;
 }
 
 const activeCanvasRegistry = {
@@ -37,7 +37,7 @@ const activeCanvasRegistry = {
   }
 };
 
-export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, canvas_width, canvas_height }) => {
+export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, canvasWidth, canvasHeight }) => {
   // const rectangleMapping = useRectangleMapping();
   const rectCounter = useRef<number>(1);
 
@@ -66,9 +66,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
   const tablesContext = useTableData();
   const pageTables = tablesContext.getTablesForPage(pdfPageNumber)
   const [isSelectedRectOnPage, setIsSelectedRectOnPage] = useState(false);
-
-  const absoluteCoordsToPercentage = (value: number, total: number) => ((value / total) * 100);
-  const percentageCoordsToAbsolute = (percentage: number, total: number) => ((percentage * total) / 100); 
 
   // Update the state when selected rectangle changes or page changes
   useEffect(() => {
@@ -121,16 +118,16 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
     rectanglesForPage.forEach(rectangle => {
       console.log(rectangle)
       const {upperLeftX, upperLeftY, lowerRightX, lowerRightY} = rectangle.coordinates
-      const absUpperLeftX = percentageCoordsToAbsolute(upperLeftX, canvas_width)
-      const absUpperLeftY = percentageCoordsToAbsolute(upperLeftY, canvas_height)
-      const absLowerRightX = percentageCoordsToAbsolute(lowerRightX, canvas_width)
-      const absLowerRightY = percentageCoordsToAbsolute(lowerRightY, canvas_height)
+      const absUpperLeftX = percentageCoordsToAbsolute(upperLeftX, canvasWidth)
+      const absUpperLeftY = percentageCoordsToAbsolute(upperLeftY, canvasHeight)
+      const absLowerRightX = percentageCoordsToAbsolute(lowerRightX, canvasWidth)
+      const absLowerRightY = percentageCoordsToAbsolute(lowerRightY, canvasHeight)
       
       console.log("coord", upperLeftX, upperLeftY, lowerRightX, lowerRightY)
       const width = absLowerRightX - absUpperLeftX;
       const height = absLowerRightY - absUpperLeftY;
 
-      console.log("POMOC", absUpperLeftX, absUpperLeftY, absLowerRightX, absLowerRightY, canvas_width, canvas_height)
+      console.log("POMOC", absUpperLeftX, absUpperLeftY, absLowerRightX, absLowerRightY, canvasWidth, canvasHeight)
 
       // Create new rectangle to canvas
       const canvasRect = new Rect({
@@ -160,8 +157,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
 
     // Initialize Fabric canvas
     const canvas = new Canvas(canvasRef.current, {
-      width: canvas_width,
-      height: canvas_height,
+      width: canvasWidth,
+      height: canvasHeight,
     });
 
     canvas.on('mouse:down', () => {
@@ -205,7 +202,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
       activeCanvasRegistry.unregisterCanvas(pdfPageNumber);
       canvas.dispose();
     };
-  }, [canvas_width, canvas_height]);
+  }, [canvasWidth, canvasHeight]);
 
   useEffect(() => {
     const canvas = fabricRef.current
@@ -333,7 +330,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2 }}>
       <canvas ref={canvasRef} />
-      {isSelectedRectOnPage && <RectangleMenu />}
+      {isSelectedRectOnPage && <RectangleMenu canvasWidth={canvasWidth} canvasHeight={canvasHeight} />}
     </div>
   );
 };

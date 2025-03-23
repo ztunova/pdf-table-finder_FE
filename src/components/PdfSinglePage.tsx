@@ -30,8 +30,8 @@ export const PdfSinglePage: React.FC<PdfSinglePageProps> = ({pageNumber}) => {
       {pageSize.width > 0 && (
         <DrawingCanvas
           pdfPageNumber={pageNumber}
-          canvas_width={pageSize.width}
-          canvas_height={pageSize.height}
+          canvasWidth={pageSize.width}
+          canvasHeight={pageSize.height}
         />
       )}
     </div>

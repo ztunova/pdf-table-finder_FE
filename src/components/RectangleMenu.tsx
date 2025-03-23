@@ -2,7 +2,13 @@ import { Box, Button, MenuItem, Paper, Select, SelectChangeEvent, Typography } f
 import { useEffect, useState } from "react";
 import { useTableData } from "../custom-context/TableContext";
 import axios from "axios";
+import { percentageCoordsToAbsolute } from "../shared-types";
 
+
+interface RectangleMenuProps {
+  canvasWidth: number;
+  canvasHeight: number;
+}
 
 interface ExtractTableRequestParams {
     pdfPageNumber: number;
@@ -20,7 +26,7 @@ enum TableExtractionMethods {
     CHATGPT = 'chatgpt',
 }
 
-const RectangleMenu = () => {
+const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     const tablesContext = useTableData();
     const [extractionMethod, setExtractionMethod] = useState<TableExtractionMethods>(TableExtractionMethods.PYMU);
     const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
@@ -32,12 +38,14 @@ const RectangleMenu = () => {
             console.log("rect data: ", rectangleData)
             if (rectangleData && rectangleData.coordinates) {
                 const { lowerRightX, upperLeftY } = rectangleData.coordinates;
+                const absLowerRightX = percentageCoordsToAbsolute(lowerRightX, canvasWidth)
+                const absUpperLeftY = percentageCoordsToAbsolute(upperLeftY, canvasHeight)
                 
                 // Position the menu at the top-right corner of the rectangle
                 // Add a small offset (10px) for better visual separation
                 setMenuPosition({
-                    left: lowerRightX + 10,
-                    top: upperLeftY
+                    left: absLowerRightX + 10,
+                    top: absUpperLeftY
                 });
             }
         }

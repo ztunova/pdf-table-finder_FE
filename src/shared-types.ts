@@ -25,3 +25,6 @@ export interface TableData {
   coordinates: TableBoundingBox,
   extractedData: string[][] | null,
 }
+
+export const absoluteCoordsToPercentage = (value: number, total: number) => ((value / total) * 100);
+export const percentageCoordsToAbsolute = (percentage: number, total: number) => ((percentage * total) / 100); 

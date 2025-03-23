@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Canvas, Control, Rect, TPointerEvent, TPointerEventInfo, util } from 'fabric';
 import { useDrawing } from '../custom-context/DrawingContext';
 import { useTableData } from '../custom-context/TableContext';
-import { percentageCoordsToAbsolute, RectWithData, TableBoundingBox } from '../shared-types';
+import { absoluteCoordsToPercentage, percentageCoordsToAbsolute, RectWithData, TableBoundingBox } from '../shared-types';
 import RectangleMenu from './RectangleMenu';
 
 // pdf page number je cislovane od 1 na FE, od 0 na BE
@@ -181,13 +181,20 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
         if (targetWithData.data?.rectangleId) {
           const rectId = targetWithData.data.rectangleId;
           console.log("modified rect id", targetWithData)
-          const newCoords:TableBoundingBox = {
-            upperLeftX: targetWithData.left,
-            upperLeftY: targetWithData.top,
-            lowerRightX: targetWithData.left + targetWithData.width * targetWithData.scaleX,
-            lowerRightY: targetWithData.top + targetWithData.height * targetWithData.scaleY
+          
+          const absUpperLeftX = targetWithData.left
+          const absUpperLeftY = targetWithData.top
+          const absLowerRightX = targetWithData.left + targetWithData.width * targetWithData.scaleX
+          const absLowerRightY = targetWithData.top + targetWithData.height * targetWithData.scaleY
+          
+          const percentageNewCoords:TableBoundingBox = {
+            upperLeftX: absoluteCoordsToPercentage(absUpperLeftX, canvasWidth),
+            upperLeftY: absoluteCoordsToPercentage(absUpperLeftY, canvasHeight),
+            lowerRightX: absoluteCoordsToPercentage(absLowerRightX, canvasWidth),
+            lowerRightY: absoluteCoordsToPercentage(absLowerRightY, canvasHeight),
           }
-          tablesContext.updateTableCoordinates(rectId, newCoords)
+
+          tablesContext.updateTableCoordinates(rectId, percentageNewCoords)
         }
       }
     });
@@ -297,16 +304,21 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
       const top = rectRef.current.top ?? 0;
       const width = rectRef.current.width * (rectRef.current.scaleX ?? 1);
       const height = rectRef.current.height * (rectRef.current.scaleY ?? 1);
+
+      const upperLeftX = left
+      const upperLeftY = top
+      const lowerRightX = left + width
+      const lowerRightY = top + height
       
-      const tableCoordinates: TableBoundingBox = {
-        upperLeftX: left,
-        upperLeftY: top,
-        lowerRightX: left + width,
-        lowerRightY: top + height
+      const percentageTableCoordinates: TableBoundingBox = {
+        upperLeftX: absoluteCoordsToPercentage(upperLeftX, canvasWidth),
+        upperLeftY: absoluteCoordsToPercentage(upperLeftY, canvasHeight),
+        lowerRightX: absoluteCoordsToPercentage(lowerRightX, canvasWidth),
+        lowerRightY: absoluteCoordsToPercentage(lowerRightY, canvasHeight)
       };
       
       // Add the record to get a rectangleId with final dimensions
-      const rectangleId = tablesContext.addTableRecord(pdfPageNumber, tableCoordinates);
+      const rectangleId = tablesContext.addTableRecord(pdfPageNumber, percentageTableCoordinates);
       
       // Assign the ID to the rectangle's data property
       rectRef.current.data = { rectangleId };

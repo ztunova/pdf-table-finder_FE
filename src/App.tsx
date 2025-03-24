@@ -4,7 +4,6 @@ import { createTheme, ThemeProvider } from '@mui/material'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { PdfProvider } from './custom-context/PdfContext'
 import MainPage from './pages/MainPage'
-import {MainLayout} from './pages/MainLayout'
 import { TableDataProvider } from './custom-context/TableContext'
 import LandingPage from './pages/LandingPage'
 

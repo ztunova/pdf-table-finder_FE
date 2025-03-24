@@ -28,7 +28,10 @@ const LandingPage: React.FC = () => {
             p: 2, 
             borderRadius: 2, 
             backgroundColor: 'background.paper',
-            height: '300px'
+            height: '300px',
+            display: 'flex',
+            flexGrow: 0,
+            boxSizing: 'border-box',
           }}
         >
           <DragAndDropArea />

@@ -105,7 +105,7 @@ export default function DragAndDropArea() {
   };
 
   return (
-    <Box sx={{ width: '100%', height: '100%' }}>
+    <Box sx={{ width: '100%', height: '100%', display: 'flex' }}>
       <Paper
         elevation={0}
         component="div"
@@ -127,6 +127,7 @@ export default function DragAndDropArea() {
           },
           position: 'relative',
           padding: 3,
+          boxSizing: 'border-box',
         }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

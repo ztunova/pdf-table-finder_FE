@@ -1,7 +1,9 @@
 import axios from "axios";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePdf } from "../custom-context/PdfContext";
+import { Button, Tooltip, Box, Snackbar, Alert } from "@mui/material";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
@@ -10,6 +12,13 @@ export default function FileUploader() {
   const { setPdfUrl } = usePdf();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Add state for toast notifications
+  const [openToast, setOpenToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastSeverity, setToastSeverity] = useState<"success" | "error">("success");
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (!e.target.files || e.target.files.length === 0) {
@@ -17,12 +26,26 @@ export default function FileUploader() {
     }
     
     const uploadedFile = e.target.files[0];
+    setSelectedFileName(uploadedFile.name);
     const fileUrl = URL.createObjectURL(uploadedFile);
     setPdfUrl(fileUrl); // automatically handles cleanup of previous url
     
     // Start upload immediately
     await uploadFile(uploadedFile);
   }
+
+  const handleButtonClick = () => {
+    // Trigger the hidden file input when the button is clicked
+    fileInputRef.current?.click();
+  };
+
+  // Handle closing the toast
+  const handleCloseToast = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenToast(false);
+  };
 
   async function uploadFile(file: File) {
     // Set uploading state and reset progress
@@ -48,47 +71,66 @@ export default function FileUploader() {
 
       setStatus('success');
       setUploadProgress(100);
+      
+      // Show success toast
+      setToastSeverity("success");
+      setToastMessage("File uploaded successfully");
+      setOpenToast(true);
+      
       navigate('/process');
     } 
     catch {
       setStatus('error');
       setUploadProgress(0);
       setPdfUrl(null);
+      
+      // Show error toast
+      setToastSeverity("error");
+      setToastMessage("Upload failed. Try again");
+      setOpenToast(true);
     }
   }
 
   return (
-    <div className="space-y-4">
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+      {/* Hidden file input */}
       <input 
+        ref={fileInputRef}
         type="file" 
         onChange={handleFileChange}
         accept="application/pdf"
+        style={{ display: 'none' }}
       />
 
-      {status === 'uploading' && (
-        <div className="space-y-2">
-          <div className="h-2.5 w-full rounded-full bg-gray-200">
-            <div 
-              className="h-2.5 rounded-full bg-blue-600 transition-all duration-300" 
-              style={{width: `${uploadProgress}%`}}
-            >
-            </div>
-          </div>
-          <p className="text-sm text-gray-600">{uploadProgress}% uploaded</p>
-        </div>
-      )}
+      {/* Styled button that matches the "Detect Tables" button */}
+      <Tooltip title="Upload a PDF document">
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          startIcon={<UploadFileIcon />}
+          onClick={handleButtonClick}
+        >
+          Upload PDF
+        </Button>
+      </Tooltip>
 
-      {status === 'success' && (
-        <p className="mt-2 text-sm text-green-600">
-          File uploaded successfully
-        </p>
-      )}
-
-      {status === 'error' && (
-        <p className="mt-2 text-sm text-red-600">
-          Upload failed. Try again
-        </p>
-      )}
-    </div>
+      {/* Toast notification */}
+      <Snackbar
+        open={openToast}
+        autoHideDuration={6000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={handleCloseToast}
+          severity={toastSeverity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {toastMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }

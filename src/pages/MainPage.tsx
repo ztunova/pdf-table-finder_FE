@@ -2,7 +2,8 @@ import Header from "../components/Header";
 import PdfContent from "../components/PdfContent";
 import { PdfToolbar } from "../components/PdfToolbar";
 import TablesViewer from "../components/table-components/TablesViewer";
-import { Box, Container } from '@mui/material';
+import FileUploader from "../components/FileUploader"; // Import the FileUploader component
+import { Box, Container, Paper } from '@mui/material';
 import { DrawingProvider } from "../custom-context/DrawingContext";
 
 const MainPage: React.FC = () => {
@@ -23,7 +24,8 @@ const MainPage: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             height: '100%',
-            overflow: 'hidden' // Changed from 'auto' to prevent scrolling
+            overflow: 'hidden', // Prevent scrolling
+            position: 'relative' // Added for absolute positioning of button section
           }}>
             <DrawingProvider>
               <Box sx={{ 
@@ -33,8 +35,30 @@ const MainPage: React.FC = () => {
                 height: '100%' 
               }}>
                 <PdfToolbar />
-                <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+                <Box sx={{ 
+                  flexGrow: 1, 
+                  overflow: 'hidden',
+                  pb: 7 // Add padding at bottom to make room for the button section
+                }}>
                   <PdfContent />
+                </Box>
+                
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    p: 2,
+                    backgroundColor: 'background.paper',
+                    borderTop: '1px solid #e0e0e0',
+                    zIndex: 10,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                >
+                  <FileUploader />
                 </Box>
               </Box>
             </DrawingProvider>

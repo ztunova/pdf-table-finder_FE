@@ -12,13 +12,30 @@ const MainPage: React.FC = () => {
         <Header />
         
         {/* Content Section */}
-        <Container maxWidth={false} disableGutters sx={{ display: 'flex', flexGrow: 1 }}>
+        <Container maxWidth={false} disableGutters sx={{ 
+          display: 'flex', 
+          flexGrow: 1,
+          height: 'calc(100vh - 64px)' // Subtract header height (assuming header is 64px)
+        }}>
           {/* Left side - PDF Content and Toolbar */}
-          <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <Box sx={{ 
+            flex: 1, 
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            overflow: 'hidden' // Changed from 'auto' to prevent scrolling
+          }}>
             <DrawingProvider>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 2,
+                height: '100%' 
+              }}>
                 <PdfToolbar />
-                <PdfContent />
+                <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+                  <PdfContent />
+                </Box>
               </Box>
             </DrawingProvider>
           </Box>

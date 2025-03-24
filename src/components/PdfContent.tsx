@@ -27,7 +27,7 @@ export default function PdfContent() {
       sx={{ 
         overflow: 'auto',
         width: '100%',
-        height: 800,
+        height: '95%', // Changed from fixed 800px to 100%
         borderRadius: 1,
         bgcolor: '#f5f5f5',
         display: 'flex',
@@ -37,7 +37,6 @@ export default function PdfContent() {
       <Document 
         file={pdfUrl} 
         onLoadSuccess={onDocumentLoadSuccess}
-        // options={{ workerSrc: pdfjs.GlobalWorkerOptions.workerSrc }}
         className="pdf-document"
       >
         {pages.map((val) => (

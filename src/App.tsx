@@ -1,12 +1,12 @@
 import './App.css'
 import FileUploader from './components/FileUploader'
-import LandingPage from './pages/LandingPage'
 import { createTheme, ThemeProvider } from '@mui/material'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { PdfProvider } from './custom-context/PdfContext'
 import MainPage from './pages/MainPage'
 import {MainLayout} from './pages/MainLayout'
 import { TableDataProvider } from './custom-context/TableContext'
+import LandingPage from './pages/LandingPage'
 
 
 const theme = createTheme({
@@ -32,7 +32,7 @@ function App() {
         <TableDataProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<FileUploader />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/process" element={<MainPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

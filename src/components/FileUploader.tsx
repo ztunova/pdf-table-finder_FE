@@ -105,7 +105,7 @@ export default function FileUploader() {
       {/* Styled button that matches the "Detect Tables" button */}
       <Tooltip title="Upload a PDF document">
         <Button
-          variant="contained"
+          variant="outlined"
           color="primary"
           size="large"
           startIcon={<UploadFileIcon />}

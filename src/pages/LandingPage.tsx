@@ -5,7 +5,7 @@ import DragAndDropArea from '../components/DragAndDropArea';
 
 const LandingPage: React.FC = () => {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '90vw', height: '100vh',  bgcolor: 'primary.light' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', width: '80vw', height: '100vh' }}>
       {/* Header */}
       <Header />
       

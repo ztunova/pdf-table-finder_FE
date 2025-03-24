@@ -21,7 +21,7 @@ export const PdfSinglePage: React.FC<PdfSinglePageProps> = ({pageNumber}) => {
   }
 
   return (
-    <Box ref={containerRef} sx={{ position: 'relative', maxWidth: '100%' }}>
+    <Box ref={containerRef} sx={{ position: 'relative', maxWidth: '100%', mb: 2, boxShadow: '0 4px 8px rgba(0,0,0,0.2)', border: '1px solid #e0e0e0' }}>
       <Page 
         pageNumber={pageNumber} 
         onLoadSuccess={onPageLoad}

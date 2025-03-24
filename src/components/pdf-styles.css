@@ -1,0 +1,22 @@
+.pdf-document {
+    padding: 5px;
+  }
+  
+.pdf-document > div {
+margin-bottom: 24px;
+position: relative;
+}
+
+.pdf-document > div:after {
+content: '';
+position: absolute;
+bottom: -12px;
+left: 5%;
+width: 90%;
+height: 2px;
+background-color: #dddddd;
+}
+
+.pdf-document > div:last-child:after {
+display: none;
+}

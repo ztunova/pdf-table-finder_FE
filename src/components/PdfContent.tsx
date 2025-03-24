@@ -29,7 +29,7 @@ export default function PdfContent() {
         width: '100%',
         height: 800,
         borderRadius: 1,
-        bgcolor: '#007FFF',
+        bgcolor: '#f5f5f5',
         display: 'flex',
         justifyContent: 'center'
       }}
@@ -37,7 +37,8 @@ export default function PdfContent() {
       <Document 
         file={pdfUrl} 
         onLoadSuccess={onDocumentLoadSuccess}
-        // options={{ worker: pdfjs.GlobalWorkerOptions.workerSrc }}
+        // options={{ workerSrc: pdfjs.GlobalWorkerOptions.workerSrc }}
+        className="pdf-document"
       >
         {pages.map((val) => (
           <PdfSinglePage 

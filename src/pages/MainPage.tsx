@@ -1,30 +1,27 @@
 import Header from "../components/Header";
 import PdfViewer from "../components/PdfViewer";
 import TablesViewer from "../components/table-components/TablesViewer";
-import { RectangleTableMappingProvider } from "../custom-context/RectangleTableMappingContext";
+import { Box, Container } from '@mui/material';
 
 const MainPage: React.FC = () => {
     return (
-      <>
-      <Header />
-      <RectangleTableMappingProvider>
-        <div style={{ 
-          display: 'flex', 
-          height: '100vh', 
-          width: '100%' 
-        }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', width: '80vw', height: '100vh' }}>
+        {/* Header */}
+        <Header />
+        
+        {/* Content Section */}
+        <Container maxWidth={false} disableGutters sx={{ display: 'flex', flexGrow: 1 }}>
           {/* Left side - PDF Viewer */}
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          <Box sx={{ flex: 1, overflow: 'auto' }}>
             <PdfViewer />
-          </div>
+          </Box>
     
           {/* Right side - Minimalistic Tabbed Panel */}
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          <Box sx={{ flex: 1, overflow: 'auto' }}>
             <TablesViewer />
-          </div>
-        </div>
-      </RectangleTableMappingProvider>
-      </>
+          </Box>
+        </Container>
+      </Box>
     );
 };
 

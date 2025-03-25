@@ -1,12 +1,12 @@
 import './App.css'
-import FileUploader from './components/FileUploader'
 import { createTheme, ThemeProvider } from '@mui/material'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { PdfProvider } from './custom-context/PdfContext'
 import MainPage from './pages/MainPage'
 import { TableDataProvider } from './custom-context/TableContext'
 import LandingPage from './pages/LandingPage'
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const theme = createTheme({
   palette: {
@@ -36,6 +36,18 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
+          <ToastContainer 
+            position="top-right"
+            autoClose={4500}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme='colored'
+          />
         </TableDataProvider>
       </PdfProvider>
     </ThemeProvider>

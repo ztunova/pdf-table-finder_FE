@@ -33,6 +33,11 @@ export default function ExportButton() {
         setAnchorEl(null);
     };
 
+    const handleMenuItemClick = (format: ExportFormat) => {
+        setExportFormat(format);
+        handleClose();
+    };
+
     const handleExport = async (format: ExportFormat) => {
         setExportFormat(format);
         // Implement your export logic here
@@ -40,7 +45,7 @@ export default function ExportButton() {
         const tableData = getExtractedTableData()
 
         try {
-            const response = await axios.post(`http://127.0.0.1:8000/pdf/export/${exportFormat}`, 
+            const response = await axios.post(`http://127.0.0.1:8000/exports/${exportFormat}`, 
                 { data: tableData},
                 { responseType: "blob" },
             );
@@ -49,7 +54,7 @@ export default function ExportButton() {
                 const url = window.URL.createObjectURL(new Blob([response.data]));
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "exported_tables.xlsx";
+                a.download = exportFormat === ExportFormat.EXCEL ? "exported_tables.xlsx" : "exported_tables.zip";
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -133,7 +138,7 @@ export default function ExportButton() {
             {menuItems.map((item) => (
               <MenuItem 
                 key={item.value} 
-                onClick={() => handleExport(item.value)}
+                onClick={() => handleMenuItemClick(item.value)}
               >
                 {item.label}
               </MenuItem>

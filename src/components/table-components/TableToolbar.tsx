@@ -1,57 +1,84 @@
-// TableToolbar.tsx
-import React, { useState } from 'react';
-import { 
-  Box,
-  ToggleButtonGroup, 
-  ToggleButton 
-} from '@mui/material';
-import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
-import FormatAlignCenterIcon from '@mui/icons-material/FormatAlignCenter';
-import FormatAlignRightIcon from '@mui/icons-material/FormatAlignRight';
-import FormatAlignJustifyIcon from '@mui/icons-material/FormatAlignJustify';
+import { Box, Button, ButtonGroup, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
+import { useState } from "react";
+import LockIcon from '@mui/icons-material/Lock';
+import CreateIcon from '@mui/icons-material/Create';
 
-const TableToolbar: React.FC = () => {
-  const [alignment, setAlignment] = useState<string | null>('left');
+enum TableDetectionMethods {
+    PYMU = 'pymu',
+    YOLO = 'yolo',
+}
 
-  const handleAlignment = (
-    event: React.MouseEvent<HTMLElement>,
-    newAlignment: string | null,
-  ) => {
-    setAlignment(newAlignment);
-  };
+export const TableToolbar: React.FC = () => {
+    const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
 
-  return (
-    <Box 
-      sx={{ 
-        display: 'flex',
-        alignItems: 'center',
-        p: 2,
-        borderBottom: '1px solid #e0e0e0',
-        backgroundColor: '#f5f5f5',
-      }}
-    >
-      <ToggleButtonGroup
-        value={alignment}
-        exclusive
-        onChange={handleAlignment}
-        aria-label="text alignment"
-        size="small"
-      >
-        <ToggleButton value="left" aria-label="left aligned">
-          <FormatAlignLeftIcon />
-        </ToggleButton>
-        <ToggleButton value="center" aria-label="centered">
-          <FormatAlignCenterIcon />
-        </ToggleButton>
-        <ToggleButton value="right" aria-label="right aligned">
-          <FormatAlignRightIcon />
-        </ToggleButton>
-        <ToggleButton value="justify" aria-label="justified" disabled>
-          <FormatAlignJustifyIcon />
-        </ToggleButton>
-      </ToggleButtonGroup>
-    </Box>
-  );
-};
+    const menuItems = [
+        { value: TableDetectionMethods.PYMU, label: 'pymu label' },
+        { value: TableDetectionMethods.YOLO, label: 'yolo label' },
+    ];
 
-export default TableToolbar;
+    return (
+        <Box 
+          sx={{ 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
+            borderBottom: '1px solid #e0e0e0'
+          }}
+        >
+            <div>
+                <ButtonGroup size="large" aria-label="drawing control button group">
+                    <Tooltip title="Lock/Unlock PDF">
+                        <Button 
+                            onClick={() => {}}
+                            color="primary"
+                        >
+                            <LockIcon fontSize="small" />
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title="Enable/Disable Drawing Mode">
+                        <Button 
+                            onClick={() => {}}
+                            color="primary"
+                            variant="contained"
+                        >
+                            <CreateIcon fontSize="small" />
+                        </Button>
+                    </Tooltip>
+                </ButtonGroup>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <FormControl variant="standard" sx={{ width: 'auto' }}>
+                    <InputLabel id="table-detection-method-select-label">Table Detection Method</InputLabel>
+                    <Select
+                        labelId="table-detection-method-select-label"
+                        id="table-detection-method-select"
+                        value={tableDetectionMethod}
+                        onChange={() => {}}
+                        label="Table Detection Method"
+                        size="medium"
+                        sx={{ minWidth: '12ch' }}
+                    >
+                    {menuItems.map((item) => (
+                        <MenuItem key={item.value} value={item.value}>
+                            {item.label}
+                        </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                
+                <Tooltip title="Detect tables in the document">
+                    <Button 
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        onClick={() => {}}
+                    >
+                        Detect Tables
+                    </Button>
+                </Tooltip>
+            </div>
+        </Box>
+    );
+}

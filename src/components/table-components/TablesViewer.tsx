@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import SingleTable from "./SingleTable";
 import TableTabs from "./TableTabs";
-import TableToolbar from "./TableToolbar";
 import { useTableData } from '../../custom-context/TableContext';
 import { Box } from '@mui/material';
 

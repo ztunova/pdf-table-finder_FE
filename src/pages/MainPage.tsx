@@ -5,6 +5,7 @@ import TablesViewer from "../components/table-components/TablesViewer";
 import FileUploader from "../components/FileUploader";
 import { Box, Container } from '@mui/material';
 import { DrawingProvider } from "../custom-context/DrawingContext";
+import { TableToolbar } from "../components/table-components/TableToolbar";
 
 const MainPage: React.FC = () => {
     return (
@@ -17,7 +18,7 @@ const MainPage: React.FC = () => {
           display: 'flex', 
           flexGrow: 1,
           height: 'calc(100vh - 64px)', // Subtract header height (assuming header is 64px)
-          // gap: 3 // Add gap between PDF and Tables sections
+          gap: 3 // Add gap between PDF and Tables sections
         }}>
           {/* Left side - PDF Content and Toolbar */}
           <Box sx={{ 
@@ -73,9 +74,44 @@ const MainPage: React.FC = () => {
             flexDirection: 'column',
             height: '100%',
             overflow: 'hidden', // Prevent outer scrolling
-            ml: 1 // Add left margin
+            ml: 1, // Add left margin
+            position: 'relative' // Added for absolute positioning of button section
           }}>
-            <TablesViewer />
+            {/* Add placeholder toolbar for tables section to align with PDF toolbar */}
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: 2,
+              height: '100%' 
+            }}>
+              <TableToolbar /> {/* Using PdfToolbar as placeholder */}
+              <Box sx={{ 
+                flexGrow: 1, 
+                overflow: 'hidden',
+                pb: 7 // Add padding at bottom to make room for the button section
+              }}>
+                <TablesViewer />
+              </Box>
+            </Box>
+            
+            {/* Add same footer with FileUploader to tables section */}
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                p: 2,
+                backgroundColor: 'background.paper',
+                borderTop: '1px solid #e0e0e0',
+                zIndex: 10,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <FileUploader />
+            </Box>
           </Box>
         </Container>
       </Box>

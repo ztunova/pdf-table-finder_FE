@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { TableBoundingBox, TableData, TableDetectionResponse } from "../shared-types";
 import { v4 as uuidv4 } from 'uuid';
+import { usePdf } from "./PdfContext";
 
 // PDF PAGE NUMBER IS COUNTED FROM 0 HERE BUT FROM 1 IN DOCUMENT!!!
 
@@ -31,10 +32,20 @@ interface TableDataContextType {
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
 
 export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { pdfUrl } = usePdf();
     const [tableData, setTableDataState] = useState<TableDataMap | null>(null);
     const [tablesPerPage, setTablesPerPage] = useState<PageTablesMap>({});
     const [selectedRectangleId, setSelectedRectangleIdState] = useState<string | null>(null);
     const [extractedTables, setExtractedTablesState] = useState<string[]>([]);
+
+        // Reset table data when PDF URL changes
+    useEffect(() => {
+        // if (pdfUrl !== previousPdfUrl) {
+            console.log('PDF URL changed, resetting all table data');
+            resetAllTableData();
+            // setPreviousPdfUrl(pdfUrl);
+        // }
+      }, [pdfUrl]);
 
     useEffect(() => {
       updateExtractedTableIds();
@@ -277,6 +288,14 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       });
       
       return extractedTableData;
+    };
+
+    const resetAllTableData = () => {
+      console.log('Resetting all table data');
+      setTableDataState(null);
+      setTablesPerPage({});
+      setSelectedRectangleIdState(null);
+      setExtractedTablesState([]);
     };
   
     return (

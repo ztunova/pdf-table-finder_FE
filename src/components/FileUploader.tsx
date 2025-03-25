@@ -4,21 +4,19 @@ import { useNavigate } from "react-router-dom";
 import { usePdf } from "../custom-context/PdfContext";
 import { Button, Tooltip, Box, Snackbar, Alert } from "@mui/material";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import { useTableData } from "../custom-context/TableContext";
+import { toast } from "react-toastify";
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 export default function FileUploader() {
   const navigate = useNavigate();
   const { setPdfUrl } = usePdf();
+  const tablesContext = useTableData();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Add state for toast notifications
-  const [openToast, setOpenToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastSeverity, setToastSeverity] = useState<"success" | "error">("success");
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (!e.target.files || e.target.files.length === 0) {
@@ -28,8 +26,7 @@ export default function FileUploader() {
     const uploadedFile = e.target.files[0];
     setSelectedFileName(uploadedFile.name);
     const fileUrl = URL.createObjectURL(uploadedFile);
-    setPdfUrl(fileUrl); // automatically handles cleanup of previous url
-    
+    setPdfUrl(fileUrl); // automatically handles cleanup of previous url    
     // Start upload immediately
     await uploadFile(uploadedFile);
   }
@@ -37,14 +34,6 @@ export default function FileUploader() {
   const handleButtonClick = () => {
     // Trigger the hidden file input when the button is clicked
     fileInputRef.current?.click();
-  };
-
-  // Handle closing the toast
-  const handleCloseToast = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenToast(false);
   };
 
   async function uploadFile(file: File) {
@@ -72,22 +61,13 @@ export default function FileUploader() {
       setStatus('success');
       setUploadProgress(100);
       
-      // Show success toast
-      setToastSeverity("success");
-      setToastMessage("File uploaded successfully");
-      setOpenToast(true);
-      
       navigate('/process');
     } 
     catch {
       setStatus('error');
       setUploadProgress(0);
       setPdfUrl(null);
-      
-      // Show error toast
-      setToastSeverity("error");
-      setToastMessage("Upload failed. Try again");
-      setOpenToast(true);
+      toast.error("Upload failed. Try again");
     }
   }
 
@@ -114,23 +94,6 @@ export default function FileUploader() {
           Upload PDF
         </Button>
       </Tooltip>
-
-      {/* Toast notification */}
-      <Snackbar
-        open={openToast}
-        autoHideDuration={6000}
-        onClose={handleCloseToast}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleCloseToast}
-          severity={toastSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {toastMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

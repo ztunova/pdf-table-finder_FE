@@ -6,6 +6,7 @@ import { useTableData } from "../custom-context/TableContext";
 import { TableDetectionResponse } from "../shared-types";
 import LockIcon from '@mui/icons-material/Lock';
 import CreateIcon from '@mui/icons-material/Create';
+import { toast } from "react-toastify";
 
 enum TableDetectionMethods {
     PYMU = 'pymu',
@@ -39,16 +40,32 @@ export const PdfToolbar: React.FC = () => {
     async function handleDetectTablesButtonClick() {
         console.log("table detection method", tableDetectionMethod)
         try {
-            const response = axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
-            const allTables: TableDetectionResponse = {
-                allRectangles: (await response).data.tables
+            const response = await axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
+            if (response.status === 200) {
+                const allTables: TableDetectionResponse = {
+                    allRectangles: response.data.tables
+                }
+                tableDataContext.setTableData(allTables)
+                console.log("All tables from context: ", tableDataContext.tableData)
             }
-            tableDataContext.setTableData(allTables)
-            console.log("All tables from context: ", tableDataContext.tableData)
         }
         catch (error) {
-            console.error('Error processing tables:', error);
-            throw error;
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    if (error.response.status === 404) {
+                        toast.error("No tables found PDF file")
+                    } 
+                    else if (error.response.status === 500) {
+                        toast.error('Server error');
+                    }
+                } 
+                else {
+                    toast.error('No response received');
+                }
+            } 
+            else {
+                toast.error('Error sending request');
+            }
         }
     }
 

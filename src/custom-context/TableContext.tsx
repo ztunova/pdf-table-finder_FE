@@ -25,6 +25,7 @@ interface TableDataContextType {
     setSelectedRectangle: (rectangleId: string | null) => void;
     getTableDataById: (rectangleId: string) => TableData | null;
     updateExtractedData: (rectangleId: string, data: string[][] | null) => void;
+    getExtractedTableData: () => TableDataMap;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
@@ -260,6 +261,23 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       setExtractedTablesState(extractedTableIds);
       console.log('Updated extracted tables list:', extractedTableIds);
     };
+
+    const getExtractedTableData = (): TableDataMap => {
+      if (!tableData || extractedTables.length === 0) {
+        return {};
+      }
+      
+      // Create a new object with only the entries whose keys are in extractedTables
+      const extractedTableData: TableDataMap = {};
+      
+      extractedTables.forEach(id => {
+        if (tableData[id]) {
+          extractedTableData[id] = tableData[id];
+        }
+      });
+      
+      return extractedTableData;
+    };
   
     return (
       <TableDataContext.Provider
@@ -276,6 +294,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           setSelectedRectangle,
           getTableDataById,
           updateExtractedData,
+          getExtractedTableData,
         }}
       >
         {children}

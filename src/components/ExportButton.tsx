@@ -9,6 +9,9 @@ import {
 } from "@mui/material";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import axios from "axios";
+import { useTableData } from "../custom-context/TableContext";
+import { data } from "react-router-dom";
 
 enum ExportFormat {
     EXCEL = "excel",
@@ -20,6 +23,7 @@ export default function ExportButton() {
     const open = Boolean(anchorEl);
 
     const [exportFormat, setExportFormat] = useState<ExportFormat>(ExportFormat.EXCEL);
+    const { getExtractedTableData } = useTableData();
 
     const handleMenuClick = (event: MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -29,13 +33,57 @@ export default function ExportButton() {
         setAnchorEl(null);
     };
 
-    const handleExport = (format: ExportFormat) => {
+    const handleExport = async (format: ExportFormat) => {
         setExportFormat(format);
         // Implement your export logic here
         console.log(`Exporting to ${format}`);
-        
-        // Close the menu
-        handleClose();
+        const tableData = getExtractedTableData()
+
+        try {
+            const response = await axios.post(`http://127.0.0.1:8000/pdf/export/${exportFormat}`, 
+                { data: tableData},
+                { responseType: "blob" },
+            );
+
+            if (response.status === 200) {
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "exported_tables.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }
+        }
+        catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    console.error(`Error status: ${error.response.status}`);
+                    console.error('Error data:', error.response.data);
+                    
+                    // Handle specific status codes
+                    if (error.response.status === 404) {
+                        console.error('Resource not found');
+                    } 
+                    else if (error.response.status === 401) {
+                        console.error('Unauthorized access');
+                    } 
+                    else if (error.response.status === 500) {
+                        console.error('Server error');
+                    }
+                } 
+                else {
+                    console.error('No response received:', error.message);
+                }
+            } 
+            else {
+                console.error('Error sending coordinates:', error);
+            }
+        }
+        finally {
+            // Close the menu
+            handleClose();
+        }
     };
 
     const menuItems = [

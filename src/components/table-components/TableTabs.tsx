@@ -1,6 +1,7 @@
 // TableTabs.tsx
 import React from 'react';
 import { useTableData } from '../../custom-context/TableContext';
+import { Box } from '@mui/material';
 
 interface TableTabsProps {
   activeTabId: string | null;
@@ -19,32 +20,35 @@ const TableTabs: React.FC<TableTabsProps> = ({ activeTabId, onTabClick }) => {
   };
 
   return (
-    <div style={{ 
+    <Box sx={{ 
       display: 'flex', 
       borderBottom: '1px solid #ddd',
       overflowX: 'auto',
-      backgroundColor: '#fff', // Ensure background is solid to cover scrolled content
-      position: 'sticky',      // Make the tabs stick to the top
-      top: 0,                  // Stick to the top of the container
-      zIndex: 1                // Ensure tabs stay above the table content
+      backgroundColor: '#fff',
+      position: 'sticky',
+      top: 0,
+      zIndex: 1,
+      height: '42px' // Set a fixed height to match PdfContent top spacing
     }}>
       {/* Dynamic tabs for extracted tables */}
       {tablesContext.extractedTables.map(tableId => (
-        <div
+        <Box
           key={tableId}
           onClick={() => onTabClick(tableId)}
-          style={{
+          sx={{
             padding: '10px 15px',
             cursor: 'pointer',
             backgroundColor: activeTabId === tableId ? '#f5f5f5' : 'transparent',
             borderBottom: activeTabId === tableId ? '2px solid #1976d2' : 'none',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            alignItems: 'center'
           }}
         >
           {getTabTitle(tableId)}
-        </div>
+        </Box>
       ))}
-    </div>
+    </Box>
   );
 };
 

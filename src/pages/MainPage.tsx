@@ -2,8 +2,8 @@ import Header from "../components/Header";
 import PdfContent from "../components/PdfContent";
 import { PdfToolbar } from "../components/PdfToolbar";
 import TablesViewer from "../components/table-components/TablesViewer";
-import FileUploader from "../components/FileUploader"; // Import the FileUploader component
-import { Box, Container, Paper } from '@mui/material';
+import FileUploader from "../components/FileUploader";
+import { Box, Container } from '@mui/material';
 import { DrawingProvider } from "../custom-context/DrawingContext";
 
 const MainPage: React.FC = () => {
@@ -16,7 +16,8 @@ const MainPage: React.FC = () => {
         <Container maxWidth={false} disableGutters sx={{ 
           display: 'flex', 
           flexGrow: 1,
-          height: 'calc(100vh - 64px)' // Subtract header height (assuming header is 64px)
+          height: 'calc(100vh - 64px)', // Subtract header height (assuming header is 64px)
+          // gap: 3 // Add gap between PDF and Tables sections
         }}>
           {/* Left side - PDF Content and Toolbar */}
           <Box sx={{ 
@@ -25,7 +26,8 @@ const MainPage: React.FC = () => {
             flexDirection: 'column',
             height: '100%',
             overflow: 'hidden', // Prevent scrolling
-            position: 'relative' // Added for absolute positioning of button section
+            position: 'relative', // Added for absolute positioning of button section
+            mr: 1 // Add right margin
           }}>
             <DrawingProvider>
               <Box sx={{ 
@@ -64,8 +66,15 @@ const MainPage: React.FC = () => {
             </DrawingProvider>
           </Box>
     
-          {/* Right side - Minimalistic Tabbed Panel */}
-          <Box sx={{ flex: 1, overflow: 'auto' }}>
+          {/* Right side - Tables Viewer with contained scrolling */}
+          <Box sx={{ 
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            overflow: 'hidden', // Prevent outer scrolling
+            ml: 1 // Add left margin
+          }}>
             <TablesViewer />
           </Box>
         </Container>

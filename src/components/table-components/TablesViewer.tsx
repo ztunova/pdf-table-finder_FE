@@ -1,9 +1,10 @@
 // TablesViewer.tsx
 import React, { useState, useEffect } from 'react';
 import SingleTable from "./SingleTable";
-import TableTabs from "./TableTabs"; // Import the new TableTabs component
-import TableToolbar from "./TableToolbar"; // Import the new TableToolbar component
+import TableTabs from "./TableTabs";
+import TableToolbar from "./TableToolbar";
 import { useTableData } from '../../custom-context/TableContext';
+import { Box } from '@mui/material';
 
 const TablesViewer: React.FC = () => {
   const tablesContext = useTableData();
@@ -58,40 +59,47 @@ const TablesViewer: React.FC = () => {
   // Handle empty state
   if (tablesContext.extractedTables.length === 0) {
     return (
-      <div style={{ 
-        height: '100%', 
+      <Box sx={{ 
+        height: '95%', 
         display: 'flex', 
         flexDirection: 'column', 
         padding: '16px',
         justifyContent: 'center',
         alignItems: 'center',
-        color: '#666'
+        color: '#666',
+        borderRadius: 1,
+        bgcolor: '#f5f5f5'
       }}>
         <p>No tables with extracted data available.</p>
         <p>Draw rectangles over tables and extract data to view them here.</p>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Toolbar section - above the tabs */}
-      <div style={{ padding: '16px 16px 0 16px' }}>
-        <TableToolbar />
-      </div>
-      
+    <Box sx={{ 
+      height: '95%', 
+      display: 'flex', 
+      flexDirection: 'column',
+      borderRadius: 1,
+      bgcolor: '#f5f5f5',
+      overflow: 'hidden' // Prevent outer scrolling
+    }}>
       {/* Tab headers - now using the TableTabs component */}
-      <div style={{ padding: '8px 16px 0 16px' }}>
+      <Box sx={{ 
+        padding: '8px 16px 0 16px', 
+        mt: 2 // Keep margin-top for tabs to separate from toolbar
+      }}>
         <TableTabs 
           activeTabId={activeTabId} 
           onTabClick={handleTabClick} 
         />
-      </div>
+      </Box>
       
       {/* Tab content - now in a separate scrollable container */}
-      <div style={{ 
+      <Box sx={{ 
         flex: 1, 
-        overflow: 'auto', 
+        overflow: 'auto', // This makes the content scrollable
         padding: '0 16px 16px 16px'
       }}>
         {/* Only render the SingleTable component for the active tab */}
@@ -102,8 +110,8 @@ const TablesViewer: React.FC = () => {
             rectangleId={activeTabId}
           />
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

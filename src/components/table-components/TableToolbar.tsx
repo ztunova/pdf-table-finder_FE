@@ -1,6 +1,7 @@
 // TableToolbar.tsx
 import React, { useState } from 'react';
 import { 
+  Box,
   ToggleButtonGroup, 
   ToggleButton 
 } from '@mui/material';
@@ -20,11 +21,15 @@ const TableToolbar: React.FC = () => {
   };
 
   return (
-    <div style={{
-      padding: '10px 0',
-      borderBottom: '1px solid #e0e0e0',
-      backgroundColor: '#f5f5f5',
-    }}>
+    <Box 
+      sx={{ 
+        display: 'flex',
+        alignItems: 'center',
+        p: 2,
+        borderBottom: '1px solid #e0e0e0',
+        backgroundColor: '#f5f5f5',
+      }}
+    >
       <ToggleButtonGroup
         value={alignment}
         exclusive
@@ -45,7 +50,7 @@ const TableToolbar: React.FC = () => {
           <FormatAlignJustifyIcon />
         </ToggleButton>
       </ToggleButtonGroup>
-    </div>
+    </Box>
   );
 };
 

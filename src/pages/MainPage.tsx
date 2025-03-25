@@ -6,6 +6,7 @@ import FileUploader from "../components/FileUploader";
 import { Box, Container } from '@mui/material';
 import { DrawingProvider } from "../custom-context/DrawingContext";
 import { TableToolbar } from "../components/table-components/TableToolbar";
+import ExportButton from "../components/ExportButton";
 
 const MainPage: React.FC = () => {
     return (
@@ -110,7 +111,7 @@ const MainPage: React.FC = () => {
                 alignItems: 'center'
               }}
             >
-              <FileUploader />
+              <ExportButton />
             </Box>
           </Box>
         </Container>

@@ -127,7 +127,10 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     ];
   
     // If not visible, don't render anything
-    if (!tablesContext.selectedRectangleId) return null;
+    if (!tablesContext.selectedRectangleId) {
+       return null 
+    };
+    const rectangleName = tablesContext.getTableDataById(tablesContext.selectedRectangleId)?.title;
   
     return (
       <Paper
@@ -143,7 +146,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
           }}
       >
         <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
-          Rectangle Options
+          {rectangleName}
         </Typography>
         
         <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>

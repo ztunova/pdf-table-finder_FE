@@ -67,7 +67,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
                 const rectId: string = uuidv4() 
                 const tableRecord: TableData = {
                   id: rectId,
-                  title: `Page ${pageNumber}, Table ${index}:`,
+                  title: `Page ${pageNumber+1} Table ${index+1}`,
                   pdfPageNumber: pageNumber,
                   coordinates: table,
                   extractedData: null,
@@ -101,16 +101,18 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     const addTableRecord = (pageNumber: number, tableCoordinates: TableBoundingBox): string => {
-      pageNumber = pageNumber -1
-      const rectId: string = uuidv4()
+      const zeroBasedPageNumber = pageNumber - 1;
+      const rectId: string = uuidv4();
+      const tableCount = (tablesPerPage[zeroBasedPageNumber] || []).length;
+
       const tableRecord: TableData = {
         id: rectId,
-        title: "some title",
-        pdfPageNumber: pageNumber,
+        title: `Page ${pageNumber} Table ${tableCount + 1}`,
+        pdfPageNumber: zeroBasedPageNumber,
         coordinates: tableCoordinates,
         extractedData: null,
-      }
-
+      };
+    
       // Update tableData state with the new record
       setTableDataState(prevTableData => {
         return {
@@ -118,17 +120,17 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           [rectId]: tableRecord
         };
       });
-
-      // Update tablesPerPage state to include this table for the specified page
+    
+      // Update tablesPerPage state to include table for the specified page
       setTablesPerPage(prevTablesPerPage => {
         const updatedTablesPerPage = { ...prevTablesPerPage };
-        if (!updatedTablesPerPage[pageNumber]) {
-          updatedTablesPerPage[pageNumber] = [];
+        if (!updatedTablesPerPage[zeroBasedPageNumber]) {
+          updatedTablesPerPage[zeroBasedPageNumber] = [];
         }
-        updatedTablesPerPage[pageNumber].push(rectId);
+        updatedTablesPerPage[zeroBasedPageNumber].push(rectId);
         return updatedTablesPerPage;
       });
-
+    
       return rectId;
     }
 

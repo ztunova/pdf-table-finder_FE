@@ -1,10 +1,11 @@
-import { Box, Button, ButtonGroup, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
+import { Box, Button, ButtonGroup, CircularProgress, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
 import { useDrawing } from "../custom-context/DrawingContext";
 import { useState } from "react";
 import axios from "axios";
 import { useTableData } from "../custom-context/TableContext";
 import { TableDetectionResponse } from "../shared-types";
 import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import CreateIcon from '@mui/icons-material/Create';
 import { toast } from "react-toastify";
 
@@ -14,9 +15,10 @@ enum TableDetectionMethods {
 }
 
 export const PdfToolbar: React.FC = () => {
-    const {isDrawingEnabled, setIsDrawingEnabled} = useDrawing();
+    const drawingContext = useDrawing();
     const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
     const tableDataContext = useTableData();
+    const [loading, setLoading] = useState(false);
 
     const menuItems = [
         { value: TableDetectionMethods.PYMU, label: 'pymu label' },
@@ -29,31 +31,38 @@ export const PdfToolbar: React.FC = () => {
     };
 
     const handleLockToggle = () => {
-        console.log("Lock/Unlock functionality toggled");
-        // Add your lock functionality here
+        // console.log("Lock/Unlock functionality toggled");
+        drawingContext.setIsDrawingLocked(prev => !prev)
     };
 
     const handleDrawingToggle = () => {
-        setIsDrawingEnabled(prev => !prev);
+        const newDrawingEnabled = !drawingContext.isDrawingEnabled;
+        drawingContext.setIsDrawingEnabled(newDrawingEnabled);
+        
+        // If turning off drawing mode and lock is on, also turn off the lock
+        if (!newDrawingEnabled && drawingContext.isDrawingLocked) {
+            drawingContext.setIsDrawingLocked(false);
+        }
     };
 
     async function handleDetectTablesButtonClick() {
-        console.log("table detection method", tableDetectionMethod)
+        // console.log("table detection method", tableDetectionMethod)
         try {
+            setLoading(true);
             const response = await axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
             if (response.status === 200) {
                 const allTables: TableDetectionResponse = {
                     allRectangles: response.data.tables
                 }
                 tableDataContext.setTableData(allTables)
-                console.log("All tables from context: ", tableDataContext.tableData)
+                // console.log("All tables from context: ", tableDataContext.tableData)
             }
         }
         catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
                     if (error.response.status === 404) {
-                        toast.error("No tables found PDF file")
+                        toast.error("No tables found in PDF file")
                     } 
                     else if (error.response.status === 500) {
                         toast.error('Server error');
@@ -66,6 +75,9 @@ export const PdfToolbar: React.FC = () => {
             else {
                 toast.error('Error sending request');
             }
+        }
+        finally {
+            setLoading(false);
         }
     }
 
@@ -81,19 +93,20 @@ export const PdfToolbar: React.FC = () => {
         >
             <div>
                 <ButtonGroup size="large" aria-label="drawing control button group">
-                    <Tooltip title="Lock/Unlock PDF">
+                    <Tooltip title={drawingContext.isDrawingLocked ? "Unlock drawing mode" : "Lock drawing mode"}>
                         <Button 
                             onClick={handleLockToggle}
-                            color={isDrawingEnabled ? "primary" : "inherit"}
+                            color={drawingContext.isDrawingLocked ? "primary" : "inherit"}
+                            variant={drawingContext.isDrawingLocked ? "contained" : "outlined"}
                         >
-                            <LockIcon fontSize="small" />
+                            {drawingContext.isDrawingLocked ? <LockIcon fontSize="small" /> : <LockOpenIcon fontSize="small" />}
                         </Button>
                     </Tooltip>
-                    <Tooltip title="Enable/Disable Drawing Mode">
+                    <Tooltip title={drawingContext.isDrawingEnabled ? "Disable drawing mode" : "Enable drawing mode"}>
                         <Button 
                             onClick={handleDrawingToggle}
-                            color={isDrawingEnabled ? "primary" : "inherit"}
-                            variant={isDrawingEnabled ? "contained" : "outlined"}
+                            color={drawingContext.isDrawingEnabled ? "primary" : "inherit"}
+                            variant={drawingContext.isDrawingEnabled ? "contained" : "outlined"}
                         >
                             <CreateIcon fontSize="small" />
                         </Button>
@@ -122,13 +135,18 @@ export const PdfToolbar: React.FC = () => {
                 </FormControl>
                 
                 <Tooltip title="Detect tables in the document">
-                    <Button 
+                    <Button
                         variant="contained"
                         color="primary"
                         size="large"
                         onClick={handleDetectTablesButtonClick}
+                        disabled={loading} // Disable button while loading
+                        sx={{ minWidth: "150px" }} // Ensures button width stays the same
                     >
-                        Detect Tables
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            {loading && <CircularProgress size={20} color="inherit" />}
+                            <span>Detect Tables</span>
+                        </Box>
                     </Button>
                 </Tooltip>
             </div>

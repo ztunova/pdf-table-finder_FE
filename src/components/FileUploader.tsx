@@ -1,21 +1,25 @@
 import axios from "axios";
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useState, useRef, DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePdf } from "../custom-context/PdfContext";
-import { Button, Tooltip, Box, Snackbar, Alert } from "@mui/material";
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { useTableData } from "../custom-context/TableContext";
+import { Box, Button, Paper, Typography, Tooltip, CircularProgress } from "@mui/material";
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import { FileText } from "lucide-react";
 import { toast } from "react-toastify";
 
-type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+type UploadStatus = 'idle' | 'uploading' | 'processing' | 'success' | 'error';
 
-export default function FileUploader() {
+interface FileUploaderProps {
+  variant: 'button' | 'area';
+}
+
+export default function FileUploader({ variant = 'button' }: FileUploaderProps) {
   const navigate = useNavigate();
-  const { setPdfUrl } = usePdf();
-  const tablesContext = useTableData();
+  const { setPdfData } = usePdf();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
@@ -24,17 +28,13 @@ export default function FileUploader() {
     }
     
     const uploadedFile = e.target.files[0];
-    setSelectedFileName(uploadedFile.name);
+    setFileName(uploadedFile.name);
     const fileUrl = URL.createObjectURL(uploadedFile);
-    setPdfUrl(fileUrl); // automatically handles cleanup of previous url    
+    setPdfData(fileUrl, uploadedFile.name); // automatically handles cleanup of previous url
+    
     // Start upload immediately
     await uploadFile(uploadedFile);
   }
-
-  const handleButtonClick = () => {
-    // Trigger the hidden file input when the button is clicked
-    fileInputRef.current?.click();
-  };
 
   async function uploadFile(file: File) {
     // Set uploading state and reset progress
@@ -46,7 +46,13 @@ export default function FileUploader() {
     formData.append('file', file);
 
     try {
-      await axios.post("http://127.0.0.1:8000/pdf", formData, {
+      // When upload is 100% complete but before server responds, show processing state
+      const onUploadComplete = () => {
+        setStatus('processing');
+      };
+      
+      // Post the file to the server
+      const response = await axios.post("http://127.0.0.1:8000/pdf", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -55,45 +61,215 @@ export default function FileUploader() {
             ? Math.round((progressEvent.loaded * 100) / progressEvent.total) 
             : 0;
           setUploadProgress(progress);
+          
+          // When upload reaches 100%, switch to processing state
+          if (progress === 100) {
+            onUploadComplete();
+          }
         },
       });
-
-      setStatus('success');
-      setUploadProgress(100);
       
+      // After receiving server response, set success and navigate
+      setStatus('success');
       navigate('/process');
     } 
     catch {
       setStatus('error');
       setUploadProgress(0);
-      setPdfUrl(null);
+      setPdfData(null, null);
+      setFileName(null);
       toast.error("Upload failed. Try again");
     }
   }
 
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      {/* Hidden file input */}
-      <input 
-        ref={fileInputRef}
-        type="file" 
-        onChange={handleFileChange}
-        accept="application/pdf"
-        style={{ display: 'none' }}
-      />
+  const handleButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
-      {/* Styled button that matches the "Detect Tables" button */}
-      <Tooltip title="Upload a PDF document">
-        <Button
-          variant="outlined"
-          color="primary"
-          size="large"
-          startIcon={<UploadFileIcon />}
-          onClick={handleButtonClick}
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0];
+      
+      // Check if the file is a PDF
+      if (droppedFile.type === 'application/pdf') {
+        setFileName(droppedFile.name);
+        const fileUrl = URL.createObjectURL(droppedFile);
+        setPdfData(fileUrl, droppedFile.name);
+        uploadFile(droppedFile);
+      } else {
+        // Handle non-PDF file
+        setStatus('error');
+        toast.error('Please upload a PDF file only.');
+      }
+    }
+  };
+
+  // Hidden file input (shared between both variants)
+  const fileInput = (
+    <input
+      ref={fileInputRef}
+      type="file"
+      onChange={handleFileChange}
+      accept="application/pdf"
+      style={{ display: 'none' }}
+    />
+  );
+
+  // Button variant
+  if (variant === 'button') {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        {fileInput}
+        <Tooltip title="Upload a PDF document">
+          <Button
+            variant="outlined"
+            color="primary"
+            size="large"
+            startIcon={status !== 'uploading' && status !== 'processing' ? <FileUploadIcon /> : null}
+            onClick={handleButtonClick}
+            disabled={status === 'uploading' || status === 'processing'}
+          >
+            {status === 'uploading' ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} color="inherit" />
+                <Typography variant="caption">{`${uploadProgress}%`}</Typography>
+              </Box>
+            ) : status === 'processing' ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} color="inherit" />
+                <Typography variant="caption">Processing</Typography>
+              </Box>
+            ) : (
+              'Upload new PDF'
+            )}
+          </Button>
+        </Tooltip>
+      </Box>
+    );
+  }
+
+  // Area variant (drag & drop)
+  return (
+    <Box sx={{ width: '100%', height: '100%', display: 'flex' }}>
+      {fileInput}
+      <Paper
+        elevation={0}
+        component="div"
+        sx={{
+          border: '2px dashed',
+          borderColor: isDragging ? 'primary.main' : 'grey.300',
+          borderRadius: 1,
+          backgroundColor: isDragging ? 'rgba(0, 139, 139, 0.05)' : 'background.paper',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            borderColor: 'primary.light',
+          },
+          position: 'relative',
+          padding: 3,
+          boxSizing: 'border-box',
+        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={handleButtonClick}
+      >
+        <FileText 
+          size={30} 
+          color="#666666" 
+          style={{ marginBottom: '16px' }} 
+        />
+        
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          {fileName ? `Selected: ${fileName}` : 'Drop PDF file here or'}
+        </Typography>
+        
+        <Button 
+          variant="contained" 
+          color="primary" 
+          size="small"
+          sx={{ 
+            marginTop: '8px',
+            textTransform: 'none',
+            fontSize: '0.8rem',
+            padding: '4px 12px'
+          }}
         >
-          Upload PDF
+          Choose file
         </Button>
-      </Tooltip>
+
+        {status === 'uploading' && (
+          <Box sx={{ position: 'relative', display: 'inline-flex', mt: 2 }}>
+            <CircularProgress
+              variant="determinate"
+              value={uploadProgress}
+              size={60}
+              thickness={4}
+            />
+            <Box
+              sx={{
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                position: 'absolute',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant="caption" component="div" color="textSecondary">
+                {`${uploadProgress}%`}
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
+        {status === 'processing' && (
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <CircularProgress size={50} />
+            <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+              Processing file...
+            </Typography>
+          </Box>
+        )}
+
+        {status === 'success' && (
+          <Typography variant="body2" color="success.main" sx={{ mt: 2 }}>
+            File uploaded successfully
+          </Typography>
+        )}
+
+        {status === 'error' && (
+          <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+            Upload failed. Try again
+          </Typography>
+        )}
+      </Paper>
     </Box>
   );
 }

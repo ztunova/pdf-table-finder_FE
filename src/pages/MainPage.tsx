@@ -62,7 +62,7 @@ const MainPage: React.FC = () => {
                     alignItems: 'center'
                   }}
                 >
-                  <FileUploader />
+                  <FileUploader variant="button"/>
                 </Box>
               </Box>
             </DrawingProvider>

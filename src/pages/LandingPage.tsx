@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Container, Typography, Paper } from '@mui/material';
 import Header from '../components/Header';
 import DragAndDropArea from '../components/DragAndDropArea';
+import FileUploader from '../components/FileUploader';
 
 const LandingPage: React.FC = () => {
   return (
@@ -34,7 +35,8 @@ const LandingPage: React.FC = () => {
             boxSizing: 'border-box',
           }}
         >
-          <DragAndDropArea />
+          {/* <DragAndDropArea /> */}
+          <FileUploader variant='area'/>
         </Paper>
         
         {/* Features */}

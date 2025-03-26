@@ -27,7 +27,7 @@ export default function PdfContent() {
       sx={{ 
         overflow: 'auto',
         width: '100%',
-        height: '95%', // Changed from fixed 800px to 100%
+        height: '95%',
         borderRadius: 1,
         bgcolor: '#f5f5f5',
         display: 'flex',

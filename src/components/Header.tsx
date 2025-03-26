@@ -11,7 +11,7 @@ const Header: React.FC = () => {
     }
 
     const onAboutClick = () => {
-        console.log("about clicked")
+        // console.log("about clicked")
     }
 
     return (
@@ -35,9 +35,9 @@ const Header: React.FC = () => {
                     PDF Table Detector
                 </Typography>
             </Box>
-            <Button color="inherit" onClick={onAboutClick}>
+            {/* <Button color="inherit" onClick={onAboutClick}>
             About
-            </Button>
+            </Button> */}
         </Toolbar>
         </AppBar>
     );

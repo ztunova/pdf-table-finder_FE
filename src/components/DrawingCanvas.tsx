@@ -105,8 +105,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
 
   // drawing rectangles per page
   useEffect(() => {
-    // console.log("table data", tablesContext.tableData)
-    console.log('xxx')
     const canvas = fabricRef.current
     if (!canvas) {
       return;
@@ -114,20 +112,16 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
 
     clearCanvas()
     const rectanglesForPage = tablesContext.getTablesForPage(pdfPageNumber);
-    console.log(`Tables for page ${pdfPageNumber}:`, rectanglesForPage);
     rectanglesForPage.forEach(rectangle => {
-      console.log(rectangle)
       const {upperLeftX, upperLeftY, lowerRightX, lowerRightY} = rectangle.coordinates
       const absUpperLeftX = percentageCoordsToAbsolute(upperLeftX, canvasWidth)
       const absUpperLeftY = percentageCoordsToAbsolute(upperLeftY, canvasHeight)
       const absLowerRightX = percentageCoordsToAbsolute(lowerRightX, canvasWidth)
       const absLowerRightY = percentageCoordsToAbsolute(lowerRightY, canvasHeight)
       
-      console.log("coord", upperLeftX, upperLeftY, lowerRightX, lowerRightY)
       const width = absLowerRightX - absUpperLeftX;
       const height = absLowerRightY - absUpperLeftY;
 
-      console.log("POMOC", absUpperLeftX, absUpperLeftY, absLowerRightX, absLowerRightY, canvasWidth, canvasHeight)
 
       // Create new rectangle to canvas
       const canvasRect = new Rect({
@@ -180,7 +174,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
         
         if (targetWithData.data?.rectangleId) {
           const rectId = targetWithData.data.rectangleId;
-          console.log("modified rect id", targetWithData)
           
           const absUpperLeftX = targetWithData.left
           const absUpperLeftY = targetWithData.top

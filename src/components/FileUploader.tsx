@@ -1,21 +1,25 @@
 import axios from "axios";
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useState, useRef, DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePdf } from "../custom-context/PdfContext";
-import { Button, Tooltip, Box, Snackbar, Alert } from "@mui/material";
+import { Box, Button, Paper, Typography, Tooltip } from "@mui/material";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { useTableData } from "../custom-context/TableContext";
+import { FileText } from "lucide-react";
 import { toast } from "react-toastify";
 
-type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+type UploadStatus = 'idle' | 'uploading' | 'processing' | 'success' | 'error';
 
-export default function FileUploader() {
+interface FileUploaderProps {
+  variant: 'button' | 'area';
+}
+
+export default function FileUploader({ variant = 'button' }: FileUploaderProps) {
   const navigate = useNavigate();
   const { setPdfData } = usePdf();
-  const tablesContext = useTableData();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
@@ -24,17 +28,13 @@ export default function FileUploader() {
     }
     
     const uploadedFile = e.target.files[0];
-    setSelectedFileName(uploadedFile.name);
+    setFileName(uploadedFile.name);
     const fileUrl = URL.createObjectURL(uploadedFile);
-    setPdfData(fileUrl, uploadedFile.name); // automatically handles cleanup of previous url    
+    setPdfData(fileUrl, uploadedFile.name); // automatically handles cleanup of previous url
+    
     // Start upload immediately
     await uploadFile(uploadedFile);
   }
-
-  const handleButtonClick = () => {
-    // Trigger the hidden file input when the button is clicked
-    fileInputRef.current?.click();
-  };
 
   async function uploadFile(file: File) {
     // Set uploading state and reset progress
@@ -60,39 +60,179 @@ export default function FileUploader() {
 
       setStatus('success');
       setUploadProgress(100);
-      
       navigate('/process');
     } 
     catch {
       setStatus('error');
       setUploadProgress(0);
       setPdfData(null, null);
+      setFileName(null);
       toast.error("Upload failed. Try again");
     }
   }
 
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      {/* Hidden file input */}
-      <input 
-        ref={fileInputRef}
-        type="file" 
-        onChange={handleFileChange}
-        accept="application/pdf"
-        style={{ display: 'none' }}
-      />
+  const handleButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
-      <Tooltip title="Upload a PDF document">
-        <Button
-          variant="outlined"
-          color="primary"
-          size="large"
-          startIcon={<UploadFileIcon />}
-          onClick={handleButtonClick}
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0];
+      
+      // Check if the file is a PDF
+      if (droppedFile.type === 'application/pdf') {
+        setFileName(droppedFile.name);
+        const fileUrl = URL.createObjectURL(droppedFile);
+        setPdfData(fileUrl, droppedFile.name);
+        uploadFile(droppedFile);
+      } else {
+        // Handle non-PDF file
+        setStatus('error');
+        toast.error('Please upload a PDF file only.');
+      }
+    }
+  };
+
+  // Hidden file input (shared between both variants)
+  const fileInput = (
+    <input
+      ref={fileInputRef}
+      type="file"
+      onChange={handleFileChange}
+      accept="application/pdf"
+      style={{ display: 'none' }}
+    />
+  );
+
+  // Button variant
+  if (variant === 'button') {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        {fileInput}
+        <Tooltip title="Upload a PDF document">
+          <Button
+            variant="outlined"
+            color="primary"
+            size="large"
+            startIcon={<UploadFileIcon />}
+            onClick={handleButtonClick}
+          >
+            Upload PDF
+          </Button>
+        </Tooltip>
+      </Box>
+    );
+  }
+
+  // Area variant (drag & drop)
+  return (
+    <Box sx={{ width: '100%', height: '100%', display: 'flex' }}>
+      {fileInput}
+      <Paper
+        elevation={0}
+        component="div"
+        sx={{
+          border: '2px dashed',
+          borderColor: isDragging ? 'primary.main' : 'grey.300',
+          borderRadius: 1,
+          backgroundColor: isDragging ? 'rgba(0, 139, 139, 0.05)' : 'background.paper',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            borderColor: 'primary.light',
+          },
+          position: 'relative',
+          padding: 3,
+          boxSizing: 'border-box',
+        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={handleButtonClick}
+      >
+        <FileText 
+          size={30} 
+          color="#666666" 
+          style={{ marginBottom: '16px' }} 
+        />
+        
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          {fileName ? `Selected: ${fileName}` : 'Drop PDF file here or'}
+        </Typography>
+        
+        <Button 
+          variant="contained" 
+          color="primary" 
+          size="small"
+          sx={{ 
+            marginTop: '8px',
+            textTransform: 'none',
+            fontSize: '0.8rem',
+            padding: '4px 12px'
+          }}
         >
-          Upload PDF
+          Choose file
         </Button>
-      </Tooltip>
+
+        {status === 'uploading' && (
+          <Box sx={{ width: '80%', mt: 2 }}>
+            <div style={{ 
+              height: '8px', 
+              width: '100%', 
+              backgroundColor: '#e0e0e0', 
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                height: '100%',
+                width: `${uploadProgress}%`,
+                backgroundColor: '#1976d2',
+                borderRadius: '4px',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+            <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
+              {uploadProgress}% uploaded
+            </Typography>
+          </Box>
+        )}
+
+        {status === 'success' && (
+          <Typography variant="body2" color="success.main" sx={{ mt: 2 }}>
+            File uploaded successfully
+          </Typography>
+        )}
+
+        {status === 'error' && (
+          <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+            Upload failed. Try again
+          </Typography>
+        )}
+      </Paper>
     </Box>
   );
 }

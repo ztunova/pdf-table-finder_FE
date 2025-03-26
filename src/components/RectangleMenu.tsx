@@ -126,9 +126,9 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     
     // Extraction methods available to the user
     const extractionMethods = [
-      { value: TableExtractionMethods.PYMU, label: 'pymu extr label' },
-      { value: TableExtractionMethods.YOLO, label: 'yolo extr label' },
-      { value: TableExtractionMethods.CHATGPT, label: 'gpt extr label' }
+      { value: TableExtractionMethods.PYMU, label: 'Extract from PDF text' },
+      { value: TableExtractionMethods.YOLO, label: 'Image processing' },
+      { value: TableExtractionMethods.CHATGPT, label: 'ChatGPT' }
     ];
   
     // If not visible, don't render anything

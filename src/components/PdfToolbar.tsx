@@ -21,8 +21,8 @@ export const PdfToolbar: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     const menuItems = [
-        { value: TableDetectionMethods.PYMU, label: 'pymu label' },
-        { value: TableDetectionMethods.YOLO, label: 'yolo label' },
+        { value: TableDetectionMethods.PYMU, label: 'Detect in PDF content' },
+        { value: TableDetectionMethods.YOLO, label: 'Detect with Image processing' },
     ];
     
     const handleTableDetectionChange = (event: SelectChangeEvent) => {

@@ -35,7 +35,9 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     previousDataRef.current = JSON.stringify(displayData);
   }, [displayData]);
 
-  if (!isActive) return null;
+  if (!isActive) { 
+    return null
+  };
 
   // Debounced handler for table changes to prevent excessive updates
   const handleTableUpdate = () => {
@@ -59,7 +61,7 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
 
 
   // New custom function added
-const mergeSelectedCellsText = () => {
+  const mergeSelectedCellsText = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
     
@@ -103,11 +105,106 @@ const mergeSelectedCellsText = () => {
     handleTableUpdate();
   };
 
+// Function to split a cell's content based on a specified character
+const splitSingleCellContent = (row: number, col: number,splitChar: string) => {
+    const hotInstance = hotTableRef.current?.hotInstance;
+    if (!hotInstance) { 
+      return
+    };
+    
+    // Get the content of the selected cell
+    const cellContent = hotInstance.getDataAtCell(row, col);
+    
+    if (!cellContent || typeof cellContent !== 'string') {
+      // No content to split or not a string
+      return;
+    }
+    
+    // Split the content based on the character
+    const parts = cellContent.split(splitChar);
+    
+    if (parts.length <= 1) {
+      // No splits occurred
+      alert('No splits occurred with the given character.');
+      return;
+    }
+    
+    // Insert columns to the right of the current cell before setting any data
+    if (parts.length > 1) {
+      // Insert n-1 columns to the right of the current cell (for the remaining parts)
+      hotInstance.alter('insert_col_end', col, parts.length - 1);
+    }
+    
+    // Now place all parts in the cells
+    for (let i = 0; i < parts.length; i++) {
+      hotInstance.setDataAtCell(row, col + i, parts[i]);
+    }
+  };
+
+  const splitCellContent = () => {
+    const hotInstance = hotTableRef.current?.hotInstance;
+    if (!hotInstance) return;
+    
+    const selectedRange = hotInstance.getSelectedRange();
+    if (!selectedRange || !selectedRange.length) return;
+    
+    // Get the selected range coordinates
+    const range = selectedRange[0];
+    const startRow = Math.min(range.from.row, range.to.row);
+    const endRow = Math.max(range.from.row, range.to.row);
+    const startCol = Math.min(range.from.col, range.to.col);
+    const endCol = Math.max(range.from.col, range.to.col);
+    
+    // Calculate dimensions
+    const numRows = endRow - startRow + 1;
+    const numCols = endCol - startCol + 1;
+
+    // Ask user for the character to split on
+    const splitChar = prompt('Enter character to split on:', ' ');
+    if (splitChar === null) {
+      // User cancelled the prompt
+      return;
+    }
+    
+    // Case 1: Single cell selected
+    if (numRows === 1 && numCols === 1) {
+      console.log('Case: Single cell selected', { row: startRow, col: startCol });
+      splitSingleCellContent(startRow, startCol, splitChar)
+    }
+    // Case 2: Multiple cells in same row
+    else if (numRows === 1 && numCols > 1) {
+      console.log('Case: Multiple cells in same row', { row: startRow, startCol, endCol, numCols });
+    }
+    // Case 3: Multiple cells in same column
+    else if (numRows > 1 && numCols === 1) {
+      console.log('Case: Multiple cells in same column', { col: startCol, startRow, endRow, numRows });
+    }
+    // Case 4: Multiple cells in different rows and columns
+    else {
+      console.log('Case: Multiple cells in different rows and columns', { 
+        startRow, 
+        endRow, 
+        startCol, 
+        endCol, 
+        numRows, 
+        numCols 
+      });
+    }
+
+    // Update the table data
+    handleTableUpdate();
+  }
+
+
   const contextMenuOptions = {
     items: {
       mergeText: {
         name: 'Merge Text',
         callback: mergeSelectedCellsText
+      },
+      splitCell: {
+        name: 'Split Cell',
+        callback: splitCellContent
       },
       separatorCustom: { name: '---------' },
       row_above: {}, 

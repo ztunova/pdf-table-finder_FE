@@ -3,11 +3,17 @@ import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import { useTableData } from '../../custom-context/TableContext';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 
 // register Handsontable's modules
 registerAllModules();
 
+enum PositionCategory {
+  SAME_ROW = "Same Row",
+  SAME_COLUMN = "Same Column",
+  MIXED = "Mixed Positions",
+}
 
 interface SingleTableProps {
     id: string;
@@ -20,6 +26,9 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
   const tableData = tablesContext.getTableDataById(rectangleId);
   const hotTableRef = useRef<HotTableRef>(null);
   const previousDataRef = useRef<string>('');
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [splitChar, setSplitChar] = useState<string>('');
+  const [splitCellCoords, setSplitCellCoords] = useState<[number, number] | null>(null);
   
   // Default data to use if no extracted data exists
   const defaultData = [
@@ -39,6 +48,24 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     return null
   };
 
+  const openSplitDialog = () => {
+    const hotInstance = hotTableRef.current?.hotInstance;
+    if (!hotInstance) return;
+
+    const selected = hotInstance.getSelected();
+    if (!selected || selected.length === 0) return;
+
+    const [row, col] = selected[0];
+
+    setSplitCellCoords([row, col]);
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setSplitChar('');
+  };
+
   // Debounced handler for table changes to prevent excessive updates
   const handleTableUpdate = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
@@ -49,7 +76,7 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     
     // Only update if data has actually changed
     if (currentDataString !== previousDataRef.current) {
-      console.log("DATA CHANGED", tablesContext.getTableDataById(rectangleId))
+      // console.log("DATA CHANGED", tablesContext.getTableDataById(rectangleId))
       previousDataRef.current = currentDataString;
       
       // Use setTimeout to break the synchronous update cycle
@@ -105,96 +132,67 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     handleTableUpdate();
   };
 
-// Function to split a cell's content based on a specified character
-const splitSingleCellContent = (row: number, col: number,splitChar: string) => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-    if (!hotInstance) { 
-      return
+
+  function categorizePositions(positions: [number, number, number, number][]): string {
+    const allSameRow = positions.every(pos => pos[0] === positions[0][0]);
+    const allSameColumn = positions.every(pos => pos[1] === positions[0][1]);
+    
+    if (allSameRow) { 
+      return PositionCategory.SAME_ROW
     };
-    
-    // Get the content of the selected cell
-    const cellContent = hotInstance.getDataAtCell(row, col);
-    
-    if (!cellContent || typeof cellContent !== 'string') {
-      // No content to split or not a string
-      return;
-    }
-    
-    // Split the content based on the character
-    const parts = cellContent.split(splitChar);
-    
-    if (parts.length <= 1) {
-      // No splits occurred
-      alert('No splits occurred with the given character.');
-      return;
-    }
-    
-    // Insert columns to the right of the current cell before setting any data
-    if (parts.length > 1) {
-      // Insert n-1 columns to the right of the current cell (for the remaining parts)
-      hotInstance.alter('insert_col_end', col, parts.length - 1);
-    }
-    
-    // Now place all parts in the cells
-    for (let i = 0; i < parts.length; i++) {
-      hotInstance.setDataAtCell(row, col + i, parts[i]);
-    }
-  };
+    if (allSameColumn) {
+       return PositionCategory.SAME_COLUMN
+    };
 
-  const splitCellContent = () => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-    if (!hotInstance) return;
-    
-    const selectedRange = hotInstance.getSelectedRange();
-    if (!selectedRange || !selectedRange.length) return;
-    
-    // Get the selected range coordinates
-    const range = selectedRange[0];
-    const startRow = Math.min(range.from.row, range.to.row);
-    const endRow = Math.max(range.from.row, range.to.row);
-    const startCol = Math.min(range.from.col, range.to.col);
-    const endCol = Math.max(range.from.col, range.to.col);
-    
-    // Calculate dimensions
-    const numRows = endRow - startRow + 1;
-    const numCols = endCol - startCol + 1;
+    // Check if all are in different rows and columns
+    // const uniqueRows = new Set(positions.map(pos => pos[0])).size;
+    // const uniqueColumns = new Set(positions.map(pos => pos[1])).size;
 
-    // Ask user for the character to split on
-    const splitChar = prompt('Enter character to split on:', ' ');
-    if (splitChar === null) {
-      // User cancelled the prompt
-      return;
-    }
-    
-    // Case 1: Single cell selected
-    if (numRows === 1 && numCols === 1) {
-      console.log('Case: Single cell selected', { row: startRow, col: startCol });
-      splitSingleCellContent(startRow, startCol, splitChar)
-    }
-    // Case 2: Multiple cells in same row
-    else if (numRows === 1 && numCols > 1) {
-      console.log('Case: Multiple cells in same row', { row: startRow, startCol, endCol, numCols });
-    }
-    // Case 3: Multiple cells in same column
-    else if (numRows > 1 && numCols === 1) {
-      console.log('Case: Multiple cells in same column', { col: startCol, startRow, endRow, numRows });
-    }
-    // Case 4: Multiple cells in different rows and columns
-    else {
-      console.log('Case: Multiple cells in different rows and columns', { 
-        startRow, 
-        endRow, 
-        startCol, 
-        endCol, 
-        numRows, 
-        numCols 
-      });
-    }
-
-    // Update the table data
-    handleTableUpdate();
+    return PositionCategory.MIXED
   }
 
+  const applySplit = () => {
+    if (!splitCellCoords || !splitChar) return;
+
+    const hotInstance = hotTableRef.current?.hotInstance;
+    if (!hotInstance) return;
+
+    const [row, col] = splitCellCoords;
+    const cellValue = hotInstance.getDataAtCell(row, col);
+    if (!cellValue || typeof cellValue !== 'string' || cellValue.trim() === '') return;
+
+    const splitValues = cellValue.split(splitChar).map(value => value.trim());
+
+    if (splitValues.length === 1) {
+        closeDialog();
+        return;
+    }
+
+    const totalCols = hotInstance.countCols();
+    const requiredCols = col + splitValues.length;
+    if (requiredCols > totalCols) {
+      hotInstance.alter('insert_col_end', totalCols, requiredCols - totalCols);
+    }
+
+    // Shift existing data **only if there is something to shift**
+    const maxShift = splitValues.length - 1;
+    for (let shiftCol = totalCols - 1; shiftCol >= col + maxShift; shiftCol--) {
+        const shiftValue = hotInstance.getDataAtCell(row, shiftCol - maxShift);
+        if (shiftValue !== null && shiftValue !== undefined) {
+            hotInstance.setDataAtCell(row, shiftCol, shiftValue);
+            hotInstance.setDataAtCell(row, shiftCol - maxShift, ''); // Clear old position
+        }
+    }
+
+    // Insert split values into the row
+    splitValues.forEach((value, index) => {
+        hotInstance.setDataAtCell(row, col + index, value);
+    });
+
+    // Update table state
+    handleTableUpdate();
+    closeDialog();
+  };
 
   const contextMenuOptions = {
     items: {
@@ -204,8 +202,8 @@ const splitSingleCellContent = (row: number, col: number,splitChar: string) => {
       },
       splitCell: {
         name: 'Split Cell',
-        callback: splitCellContent
-      },
+        callback: openSplitDialog
+    },
       separatorCustom: { name: '---------' },
       row_above: {}, 
       row_below: {},
@@ -252,6 +250,35 @@ const splitSingleCellContent = (row: number, col: number,splitChar: string) => {
 
         licenseKey="non-commercial-and-evaluation" // for non-commercial use only
       />
+      <Dialog 
+          open={isDialogOpen} 
+          onClose={closeDialog}
+          maxWidth="xs" // Matches your example
+          fullWidth
+      >
+          <DialogTitle>Split Cell</DialogTitle>
+          <DialogContent>
+              <TextField
+                  autoFocus
+                  margin="dense"
+                  label="Split Character"
+                  type="text"
+                  fullWidth
+                  value={splitChar}
+                  onChange={(e) => setSplitChar(e.target.value)}
+                  slotProps={{ htmlInput: { maxLength: 1 } }}
+              />
+          </DialogContent>
+          <DialogActions>
+              <Button onClick={applySplit} variant="contained" color="primary">
+                  Split
+              </Button>
+              <Button onClick={closeDialog} variant="outlined" color="error">
+                  Cancel
+              </Button>
+          </DialogActions>
+      </Dialog>
+
     </div>
   );
 }

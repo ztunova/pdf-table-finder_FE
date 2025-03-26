@@ -5,11 +5,11 @@ import { usePdf } from "../custom-context/PdfContext";
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { FileText } from "lucide-react";
 
-type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+type UploadStatus = 'idle' | 'uploading' | 'processing' |'success' | 'error';
 
 export default function DragAndDropArea() {
   const navigate = useNavigate();
-  const { setPdfUrl } = usePdf();
+  const { setPdfData } = usePdf();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -24,7 +24,7 @@ export default function DragAndDropArea() {
     const uploadedFile = e.target.files[0];
     setFileName(uploadedFile.name);
     const fileUrl = URL.createObjectURL(uploadedFile);
-    setPdfUrl(fileUrl); // automatically handles cleanup of previous url
+    setPdfData(fileUrl, uploadedFile.name); // automatically handles cleanup of previous url
     
     // Start upload immediately
     await uploadFile(uploadedFile);
@@ -59,7 +59,7 @@ export default function DragAndDropArea() {
     catch {
       setStatus('error');
       setUploadProgress(0);
-      setPdfUrl(null);
+      setPdfData(null, null);
       setFileName(null);
     }
   }
@@ -94,7 +94,7 @@ export default function DragAndDropArea() {
       if (droppedFile.type === 'application/pdf') {
         setFileName(droppedFile.name);
         const fileUrl = URL.createObjectURL(droppedFile);
-        setPdfUrl(fileUrl);
+        setPdfData(fileUrl, droppedFile.name);
         uploadFile(droppedFile);
       } else {
         // Handle non-PDF file

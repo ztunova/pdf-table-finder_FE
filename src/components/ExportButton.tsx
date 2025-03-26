@@ -11,7 +11,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import axios from "axios";
 import { useTableData } from "../custom-context/TableContext";
-import { data } from "react-router-dom";
+import { usePdf } from "../custom-context/PdfContext";
 
 enum ExportFormat {
     EXCEL = "excel",
@@ -24,6 +24,7 @@ export default function ExportButton() {
 
     const [exportFormat, setExportFormat] = useState<ExportFormat>(ExportFormat.EXCEL);
     const { getExtractedTableData } = useTableData();
+    const { pdfName } = usePdf();
 
     const handleMenuClick = (event: MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -36,6 +37,16 @@ export default function ExportButton() {
     const handleMenuItemClick = (format: ExportFormat) => {
         setExportFormat(format);
         handleClose();
+    };
+
+    const getBaseName = () => {
+      if (!pdfName) {
+        return "exported_tables"
+      };
+      // Remove .pdf extension if present
+      return pdfName.toLowerCase().endsWith('.pdf') 
+          ? pdfName.slice(0, -4) 
+          : pdfName;
     };
 
     const handleExport = async (format: ExportFormat) => {
@@ -51,13 +62,21 @@ export default function ExportButton() {
             );
 
             if (response.status === 200) {
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = exportFormat === ExportFormat.EXCEL ? "exported_tables.xlsx" : "exported_tables.zip";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
+              const url = window.URL.createObjectURL(new Blob([response.data]));
+              const a = document.createElement("a");
+              a.href = url;
+              
+              const baseName = getBaseName();
+              if (exportFormat === ExportFormat.EXCEL) {
+                  a.download = `${baseName}.xlsx`;
+              } else {
+                  a.download = `${baseName}.zip`;
+              }
+              
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url); // Clean up the URL object
             }
         }
         catch (error) {

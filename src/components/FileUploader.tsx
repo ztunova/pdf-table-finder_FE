@@ -11,7 +11,7 @@ type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 export default function FileUploader() {
   const navigate = useNavigate();
-  const { setPdfUrl } = usePdf();
+  const { setPdfData } = usePdf();
   const tablesContext = useTableData();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -26,7 +26,7 @@ export default function FileUploader() {
     const uploadedFile = e.target.files[0];
     setSelectedFileName(uploadedFile.name);
     const fileUrl = URL.createObjectURL(uploadedFile);
-    setPdfUrl(fileUrl); // automatically handles cleanup of previous url    
+    setPdfData(fileUrl, uploadedFile.name); // automatically handles cleanup of previous url    
     // Start upload immediately
     await uploadFile(uploadedFile);
   }
@@ -66,7 +66,7 @@ export default function FileUploader() {
     catch {
       setStatus('error');
       setUploadProgress(0);
-      setPdfUrl(null);
+      setPdfData(null, null);
       toast.error("Upload failed. Try again");
     }
   }
@@ -82,7 +82,6 @@ export default function FileUploader() {
         style={{ display: 'none' }}
       />
 
-      {/* Styled button that matches the "Detect Tables" button */}
       <Tooltip title="Upload a PDF document">
         <Button
           variant="outlined"

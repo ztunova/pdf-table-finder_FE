@@ -8,6 +8,11 @@ import { useRef, useEffect } from 'react';
 // register Handsontable's modules
 registerAllModules();
 
+enum PositionCategory {
+  SAME_ROW = "Same Row",
+  SAME_COLUMN = "Same Column",
+  MIXED = "Mixed Positions",
+}
 
 interface SingleTableProps {
     id: string;
@@ -49,7 +54,7 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     
     // Only update if data has actually changed
     if (currentDataString !== previousDataRef.current) {
-      console.log("DATA CHANGED", tablesContext.getTableDataById(rectangleId))
+      // console.log("DATA CHANGED", tablesContext.getTableDataById(rectangleId))
       previousDataRef.current = currentDataString;
       
       // Use setTimeout to break the synchronous update cycle
@@ -105,59 +110,90 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     handleTableUpdate();
   };
 
+
+  function categorizePositions(positions: [number, number, number, number][]): string {
+    const allSameRow = positions.every(pos => pos[0] === positions[0][0]);
+    const allSameColumn = positions.every(pos => pos[1] === positions[0][1]);
+    
+    if (allSameRow) { 
+      return PositionCategory.SAME_ROW
+    };
+    if (allSameColumn) {
+       return PositionCategory.SAME_COLUMN
+    };
+
+    // Check if all are in different rows and columns
+    // const uniqueRows = new Set(positions.map(pos => pos[0])).size;
+    // const uniqueColumns = new Set(positions.map(pos => pos[1])).size;
+
+    return PositionCategory.MIXED
+  }
+
+
 // Function to split a cell's content based on a specified character
-const splitSingleCellContent = (row: number, col: number,splitChar: string) => {
+const addColumnsRight = (col: number, numOfColsToAdd: number) => {
+  console.log("COL", col)
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) { 
       return
     };
+
+    hotInstance.alter('insert_col_end', col, numOfColsToAdd);
     
     // Get the content of the selected cell
-    const cellContent = hotInstance.getDataAtCell(row, col);
+    // const cellContent = hotInstance.getDataAtCell(row, col);
     
-    if (!cellContent || typeof cellContent !== 'string') {
-      // No content to split or not a string
-      return;
-    }
+    // if (!cellContent || typeof cellContent !== 'string') {
+    //   // No content to split or not a string
+    //   return;
+    // }
     
-    // Split the content based on the character
-    const parts = cellContent.split(splitChar);
+    // // Split the content based on the character
+    // const parts = cellContent.split(splitChar);
     
-    if (parts.length <= 1) {
-      // No splits occurred
-      alert('No splits occurred with the given character.');
-      return;
-    }
+    // if (parts.length <= 1) {
+    //   // No splits occurred
+    //   alert('No splits occurred with the given character.');
+    //   return;
+    // }
     
-    // Insert columns to the right of the current cell before setting any data
-    if (parts.length > 1) {
-      // Insert n-1 columns to the right of the current cell (for the remaining parts)
-      hotInstance.alter('insert_col_end', col, parts.length - 1);
-    }
+    // // Insert columns to the right of the current cell before setting any data
+    // if (parts.length > 1) {
+    //   // Insert n-1 columns to the right of the current cell (for the remaining parts)
+    //   hotInstance.alter('insert_col_end', col, parts.length - 1);
+    // }
     
-    // Now place all parts in the cells
-    for (let i = 0; i < parts.length; i++) {
-      hotInstance.setDataAtCell(row, col + i, parts[i]);
-    }
+    // // Now place all parts in the cells
+    // for (let i = 0; i < parts.length; i++) {
+    //   hotInstance.setDataAtCell(row, col + i, parts[i]);
+    // }
   };
 
   const splitCellContent = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
+
+    // console.log(hotInstance.getSelectedRangeLast())
     
-    const selectedRange = hotInstance.getSelectedRange();
-    if (!selectedRange || !selectedRange.length) return;
+    // const selectedRange = hotInstance.getSelectedRange();
+    // if (!selectedRange || !selectedRange.length) return;
     
     // Get the selected range coordinates
-    const range = selectedRange[0];
-    const startRow = Math.min(range.from.row, range.to.row);
-    const endRow = Math.max(range.from.row, range.to.row);
-    const startCol = Math.min(range.from.col, range.to.col);
-    const endCol = Math.max(range.from.col, range.to.col);
-    
-    // Calculate dimensions
-    const numRows = endRow - startRow + 1;
-    const numCols = endCol - startCol + 1;
+    // const range = selectedRange[0];
+    // const startRow = Math.min(range.from.row, range.to.row);
+    // const endRow = Math.max(range.from.row, range.to.row);
+    // const startCol = Math.min(range.from.col, range.to.col);
+    // const endCol = Math.max(range.from.col, range.to.col);
+
+    // console.log("range", hotInstance.getSelected(), selectedRange.length)
+    // console.log("start row",startRow)
+    // console.log("end row", endRow)
+    // console.log("start col", startCol)
+    // console.log("end col", endCol)
+  
+    // // Calculate dimensions
+    // const numRows = endRow - startRow + 1;
+    // const numCols = endCol - startCol + 1;
 
     // Ask user for the character to split on
     const splitChar = prompt('Enter character to split on:', ' ');
@@ -165,31 +201,73 @@ const splitSingleCellContent = (row: number, col: number,splitChar: string) => {
       // User cancelled the prompt
       return;
     }
+
+    const selectedRange = hotInstance.getSelected() || []
+    console.log("selectedRange",selectedRange)
+    if (!selectedRange) {
+      return
+    }
+
+    const positionType = categorizePositions(selectedRange)
+    if (positionType === PositionCategory.SAME_ROW) {
+      console.log("SAME ROW")
+      console.log(selectedRange)
+      for (let i = 0; i < selectedRange.length; i += 1) {
+        const cellPosition = selectedRange[i]
+        console.log(cellPosition)
+        const cellRow = cellPosition[0]
+        const cellColumn = cellPosition[1]
+        const cellContent = hotInstance.getDataAtCell(cellRow, cellColumn);
+        const parts = cellContent.split(splitChar);
+        if (parts.length > 1) {
+          addColumnsRight(cellPosition[1], parts.length - 1)
+          // // Now place all parts in the cells
+          for (let j = 0; j < parts.length; j++) {
+            hotInstance.setDataAtCell(cellRow, cellColumn + j, parts[j]);
+          }
+        }
+      }
+    }
+    if (positionType === PositionCategory.SAME_COLUMN) {
+      console.log("SAME COL")
+      // const numColsToAdd = []
+      // for (let i = 0; i < selectedRange.length; i += 1) {
+      //   const cellPosition = selectedRange[i]
+      //   const cellContent = hotInstance.getDataAtCell(cellPosition[0], cellPosition[1]);
+      //   const parts = cellContent.split(splitChar);
+      //   numColsToAdd.push(parts);
+      // }
+
+      // const maxColsToAdd = Math.max(...numColsToAdd)
+    }
     
-    // Case 1: Single cell selected
-    if (numRows === 1 && numCols === 1) {
-      console.log('Case: Single cell selected', { row: startRow, col: startCol });
-      splitSingleCellContent(startRow, startCol, splitChar)
-    }
-    // Case 2: Multiple cells in same row
-    else if (numRows === 1 && numCols > 1) {
-      console.log('Case: Multiple cells in same row', { row: startRow, startCol, endCol, numCols });
-    }
-    // Case 3: Multiple cells in same column
-    else if (numRows > 1 && numCols === 1) {
-      console.log('Case: Multiple cells in same column', { col: startCol, startRow, endRow, numRows });
-    }
-    // Case 4: Multiple cells in different rows and columns
-    else {
-      console.log('Case: Multiple cells in different rows and columns', { 
-        startRow, 
-        endRow, 
-        startCol, 
-        endCol, 
-        numRows, 
-        numCols 
-      });
-    }
+    // // Case 1: Single cell selected
+    // if (selectedRange.length === 1) {
+    //   console.log('Case: Single cell selected', { row: startRow, col: startCol });
+    //   splitSingleCellContent(startCol, 1)
+    // }
+    // // Case 2: Multiple cells in same row
+    // else if (numRows === 1 && numCols > 1) {
+    //   console.log('Case: Multiple cells in same row', { row: startRow, startCol, endCol, numCols });
+    //   // for (let col = startCol; col <= endCol; col++) {
+    //   //   splitSingleCellContent(startRow, col, splitChar)
+    //   // }
+    // }
+    // // Case 3: Multiple cells in same column
+    // else if (numRows > 1 && numCols === 1) {
+    //   console.log('Case: Multiple cells in same column', { col: startCol, startRow, endRow, numRows });
+    // }
+    // // Case 4: Multiple cells in different rows and columns
+    // else {
+    //   console.log('Case: Multiple cells in different rows and columns', { 
+    //     startRow, 
+    //     endRow, 
+    //     startCol, 
+    //     endCol, 
+    //     numRows, 
+    //     numCols 
+    //   });
+    // }
 
     // Update the table data
     handleTableUpdate();

@@ -41,7 +41,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         // Reset table data when PDF URL changes
     useEffect(() => {
         // if (pdfUrl !== previousPdfUrl) {
-            console.log('PDF URL changed, resetting all table data');
             resetAllTableData();
             // setPreviousPdfUrl(pdfUrl);
         // }
@@ -63,7 +62,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
             }
             
             tables.forEach((table, index) => {
-              console.log("XX", table)
                 const rectId: string = uuidv4() 
                 const tableRecord: TableData = {
                   id: rectId,
@@ -137,34 +135,26 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     const deleteTableRecord = (rectangleId: string): void => {
       // Input validation
       if (!rectangleId) {
-        console.log('Invalid rectangleId');
         return;
       }
 
       // If there's no tableData, nothing to delete
       if (!tableData) {
-        console.log('No table data available');
         return;
       }
 
       // Check if the record exists
       if (!tableData[rectangleId]) {
-        console.log(`Table with ID ${rectangleId} not found`);
         return;
       }
 
-      console.log('Deleting table with id:', rectangleId);
-      console.log("Current tableData state:", tableData);
-
       // If this is the currently selected rectangle, deselect it
       if (selectedRectangleId === rectangleId) {
-        console.log("Deselecting currently selected rectangle");
         setSelectedRectangleIdState(null);
       }
 
       // Check if the rectangle is in extractedTables list and remove it immediately
       if (extractedTables.includes(rectangleId)) {
-        console.log(`Removing ${rectangleId} from extractedTables list`);
         setExtractedTablesState(prevExtractedTables => 
           prevExtractedTables.filter(id => id !== rectangleId)
         );
@@ -176,7 +166,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         
         const updatedTableData = { ...prevTableData };
         delete updatedTableData[rectangleId];
-        console.log('updated tableData', updatedTableData);
 
         return updatedTableData;
       });
@@ -200,7 +189,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           }
         });
         
-        console.log('updated tablesPerPage', updatedTablesPerPage);
         return updatedTablesPerPage;
       });
     };
@@ -209,7 +197,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     const updateTableCoordinates = (rectangleId: string, newCoordinates: TableBoundingBox): void => {
       setTableDataState(prevTableData => {
         if (!prevTableData || !prevTableData[rectangleId]) {
-          console.log(`Table record with ID ${rectangleId} not found`);
           return prevTableData;
         }
 
@@ -224,7 +211,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     const setSelectedRectangle = (rectangleId: string | null): void => {
-      console.log("SELECTED RECTANGLE CHANGE")
       setSelectedRectangleIdState(rectangleId);
     };
 
@@ -238,13 +224,11 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const updateExtractedData = (rectangleId: string, data: string[][] | null): void => {
       if (!rectangleId) {
-        console.log('Invalid rectangleId for updating extracted data');
         return;
       }
       
       setTableDataState(prevTableData => {
         if (!prevTableData || !prevTableData[rectangleId]) {
-          console.log(`Table record with ID ${rectangleId} not found for updating extracted data`);
           return prevTableData;
         }
 
@@ -272,7 +256,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       );
 
       setExtractedTablesState(extractedTableIds);
-      console.log('Updated extracted tables list:', extractedTableIds);
     };
 
     const getExtractedTableData = (): TableDataMap => {
@@ -293,7 +276,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     const resetAllTableData = () => {
-      console.log('Resetting all table data');
       setTableDataState(null);
       setTablesPerPage({});
       setSelectedRectangleIdState(null);

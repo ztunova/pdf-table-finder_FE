@@ -13,9 +13,7 @@ const TablesViewer: React.FC = () => {
   
   // Set active tab when tables change
   useEffect(() => {
-    console.log("SELECTED TAB CHANGE")
     if (tablesContext.selectedRectangleId && tablesContext.extractedTables.includes(tablesContext.selectedRectangleId)) {
-      console.log("SET SELECTED TAB TO SELECTED RECT")
       setActiveTabId(tablesContext.selectedRectangleId);
     }
     // no rectangle is currently selected
@@ -23,20 +21,19 @@ const TablesViewer: React.FC = () => {
       if (tablesContext.extractedTables.length > 0) {
         if (activeTabId != null) {
           if (!tablesContext.extractedTables.includes(activeTabId)) {
-            console.log("ACTIVE TAB NOT IN EXTR TABLES => SELECT OTHER TAB")
             const newActiveTabId = tablesContext.extractedTables[tablesContext.extractedTables.length - 1];
             setActiveTabId(newActiveTabId);
           }
           else {
-            console.log("KEEP CURRENT TAB")
+            // console.log("KEEP CURRENT TAB")
           }
         }
         else {
-          console.log("NO RECT AND NO TAB SELECTED")
+          // console.log("NO RECT AND NO TAB SELECTED")
         }
       }
       else {
-        console.log("TAB NULL")
+        // console.log("TAB NULL")
         setActiveTabId(null)
       }
     }
@@ -44,7 +41,6 @@ const TablesViewer: React.FC = () => {
 
   useEffect(() => {
     if (activeTabId !== tablesContext.selectedRectangleId) {
-      console.log("DIFFERENT ACTIVE TAB AND RECT")
       tablesContext.setSelectedRectangle(activeTabId)
     }
   }, [activeTabId])

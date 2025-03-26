@@ -3,7 +3,7 @@ import { ChangeEvent, useState, useRef, DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePdf } from "../custom-context/PdfContext";
 import { Box, Button, Paper, Typography, Tooltip, CircularProgress } from "@mui/material";
-import UploadFileIcon from '@mui/icons-material/UploadFile';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { FileText } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -143,7 +143,7 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
             variant="outlined"
             color="primary"
             size="large"
-            startIcon={status !== 'uploading' && status !== 'processing' ? <UploadFileIcon /> : null}
+            startIcon={status !== 'uploading' && status !== 'processing' ? <FileUploadIcon /> : null}
             onClick={handleButtonClick}
             disabled={status === 'uploading' || status === 'processing'}
           >
@@ -158,7 +158,7 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
                 <Typography variant="caption">Processing</Typography>
               </Box>
             ) : (
-              'Upload PDF'
+              'Upload new PDF'
             )}
           </Button>
         </Tooltip>

@@ -7,7 +7,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import UploadFileIcon from '@mui/icons-material/UploadFile';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import axios from "axios";
 import { useTableData } from "../custom-context/TableContext";
@@ -52,7 +52,7 @@ export default function ExportButton() {
     const handleExport = async (format: ExportFormat) => {
         setExportFormat(format);
         // Implement your export logic here
-        console.log(`Exporting to ${format}`);
+        // console.log(`Exporting to ${format}`);
         const tableData = getExtractedTableData()
 
         try {
@@ -120,7 +120,7 @@ export default function ExportButton() {
           <ButtonGroup variant="outlined" color="primary" size="large">
             <Tooltip title="Export data">
               <Button
-                startIcon={<UploadFileIcon />}
+                startIcon={<FileDownloadIcon />}
                 onClick={() => handleExport(exportFormat)} // Default export format
               >
                 Export to {menuItems.find(item => item.value === exportFormat)?.label}

@@ -41,7 +41,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
   // const rectangleMapping = useRectangleMapping();
   const rectCounter = useRef<number>(1);
 
-  const { isDrawingEnabled } = useDrawing();
+  const drawingContext = useDrawing();
   // useRef for storing values that we need to access throughout the component's lifecycle but don't need to trigger re-renders
   // usage of useState instead of useRef would cause unnecessary re-renders
 
@@ -217,7 +217,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
       return;
     }
 
-    if (isDrawingEnabled) {
+    if (drawingContext.isDrawingEnabled) {
       canvas.on('mouse:down', handleMouseDown);
       canvas.on('mouse:move', handleMouseMove);
       canvas.on('mouse:up', handleMouseUp);
@@ -232,7 +232,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
       canvas.off('mouse:up', handleMouseUp);
     };
 
-  }, [isDrawingEnabled])
+  }, [drawingContext.isDrawingEnabled, drawingContext.isDrawingLocked])
   
 
   const handleObjectSelected = (e: any) => {
@@ -246,7 +246,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
   };
 
   const handleMouseDown = (eventData: TPointerEventInfo<TPointerEvent>) => {
-    if (!isDrawingEnabled || !fabricRef.current) {
+    if (!drawingContext.isDrawingEnabled || !fabricRef.current) {
       return;
     }
 
@@ -322,7 +322,10 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
       
       // Assign the ID to the rectangle's data property
       rectRef.current.data = { rectangleId };
-      
+
+      if(!drawingContext.isDrawingLocked) {
+        drawingContext.setIsDrawingEnabled(false)
+      }
     }
 
     isDrawingRef.current = false;

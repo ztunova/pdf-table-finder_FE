@@ -5,6 +5,7 @@ import axios from "axios";
 import { useTableData } from "../custom-context/TableContext";
 import { TableDetectionResponse } from "../shared-types";
 import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import CreateIcon from '@mui/icons-material/Create';
 import { toast } from "react-toastify";
 
@@ -14,7 +15,7 @@ enum TableDetectionMethods {
 }
 
 export const PdfToolbar: React.FC = () => {
-    const {isDrawingEnabled, setIsDrawingEnabled} = useDrawing();
+    const drawingContext = useDrawing();
     const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
     const tableDataContext = useTableData();
 
@@ -30,11 +31,17 @@ export const PdfToolbar: React.FC = () => {
 
     const handleLockToggle = () => {
         console.log("Lock/Unlock functionality toggled");
-        // Add your lock functionality here
+        drawingContext.setIsDrawingLocked(prev => !prev)
     };
 
     const handleDrawingToggle = () => {
-        setIsDrawingEnabled(prev => !prev);
+        const newDrawingEnabled = !drawingContext.isDrawingEnabled;
+        drawingContext.setIsDrawingEnabled(newDrawingEnabled);
+        
+        // If turning off drawing mode and lock is on, also turn off the lock
+        if (!newDrawingEnabled && drawingContext.isDrawingLocked) {
+            drawingContext.setIsDrawingLocked(false);
+        }
     };
 
     async function handleDetectTablesButtonClick() {
@@ -81,19 +88,20 @@ export const PdfToolbar: React.FC = () => {
         >
             <div>
                 <ButtonGroup size="large" aria-label="drawing control button group">
-                    <Tooltip title="Lock/Unlock PDF">
+                    <Tooltip title={drawingContext.isDrawingLocked ? "Unlock drawing mode" : "Lock drawing mode"}>
                         <Button 
                             onClick={handleLockToggle}
-                            color={isDrawingEnabled ? "primary" : "inherit"}
+                            color={drawingContext.isDrawingLocked ? "primary" : "inherit"}
+                            variant={drawingContext.isDrawingLocked ? "contained" : "outlined"}
                         >
-                            <LockIcon fontSize="small" />
+                            {drawingContext.isDrawingLocked ? <LockIcon fontSize="small" /> : <LockOpenIcon fontSize="small" />}
                         </Button>
                     </Tooltip>
-                    <Tooltip title="Enable/Disable Drawing Mode">
+                    <Tooltip title={drawingContext.isDrawingEnabled ? "Disable drawing mode" : "Enable drawing mode"}>
                         <Button 
                             onClick={handleDrawingToggle}
-                            color={isDrawingEnabled ? "primary" : "inherit"}
-                            variant={isDrawingEnabled ? "contained" : "outlined"}
+                            color={drawingContext.isDrawingEnabled ? "primary" : "inherit"}
+                            variant={drawingContext.isDrawingEnabled ? "contained" : "outlined"}
                         >
                             <CreateIcon fontSize="small" />
                         </Button>

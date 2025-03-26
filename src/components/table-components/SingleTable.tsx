@@ -57,6 +57,76 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     }
   };
 
+
+  // New custom function added
+const mergeSelectedCellsText = () => {
+    const hotInstance = hotTableRef.current?.hotInstance;
+    if (!hotInstance) return;
+    
+    const selectedRange = hotInstance.getSelectedRange();
+    if (!selectedRange || !selectedRange.length) return;
+    
+    // Get the selected range coordinates
+    const range = selectedRange[0];
+    const startRow = Math.min(range.from.row, range.to.row);
+    const endRow = Math.max(range.from.row, range.to.row);
+    const startCol = Math.min(range.from.col, range.to.col);
+    const endCol = Math.max(range.from.col, range.to.col);
+    
+    // Collect all non-empty text content from selected cells
+    const textParts: string[] = [];
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        const cellValue = hotInstance.getDataAtCell(row, col);
+        if (cellValue && cellValue.toString().trim() !== '') {
+          textParts.push(cellValue.toString());
+        }
+      }
+    }
+    
+    // Combine the collected text with space separation
+    const mergedText = textParts.join(' ');
+    
+    // Place the merged text in the top-left cell of the selection
+    hotInstance.setDataAtCell(startRow, startCol, mergedText);
+    
+    // Clear all other cells in the selection
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        if (row !== startRow || col !== startCol) {
+          hotInstance.setDataAtCell(row, col, '');
+        }
+      }
+    }
+    
+    // Update the table data
+    handleTableUpdate();
+  };
+
+  const contextMenuOptions = {
+    items: {
+      mergeText: {
+        name: 'Merge Text',
+        callback: mergeSelectedCellsText
+      },
+      separatorCustom: { name: '---------' },
+      row_above: {}, 
+      row_below: {},
+      col_left: {},
+      col_right: {},
+      separatorInsert: { name: '---------' },
+      remove_row: {},
+      remove_col: {},
+      separatorRemove: { name: '---------' },
+      undo: {},
+      redo: {},
+      cut: {},
+      copy: {},
+      separatorTools: { name: '---------' },
+      alignment: {}
+    }
+  };
+
   return (
     <div className="ht-theme-main-dark-auto">
       <HotTable
@@ -70,8 +140,8 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
         minRows={10}
         autoWrapRow={true}
         autoWrapCol={true}
-        contextMenu={true}
-        mergeCells={true}
+        contextMenu={contextMenuOptions}
+        // mergeCells={true}
         manualRowMove={true}
         manualColumnMove={true}
         manualColumnResize={true}

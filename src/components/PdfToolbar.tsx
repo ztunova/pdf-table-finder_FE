@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
+import { Box, Button, ButtonGroup, CircularProgress, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
 import { useDrawing } from "../custom-context/DrawingContext";
 import { useState } from "react";
 import axios from "axios";
@@ -18,6 +18,7 @@ export const PdfToolbar: React.FC = () => {
     const drawingContext = useDrawing();
     const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
     const tableDataContext = useTableData();
+    const [loading, setLoading] = useState(false);
 
     const menuItems = [
         { value: TableDetectionMethods.PYMU, label: 'pymu label' },
@@ -30,7 +31,7 @@ export const PdfToolbar: React.FC = () => {
     };
 
     const handleLockToggle = () => {
-        console.log("Lock/Unlock functionality toggled");
+        // console.log("Lock/Unlock functionality toggled");
         drawingContext.setIsDrawingLocked(prev => !prev)
     };
 
@@ -45,22 +46,23 @@ export const PdfToolbar: React.FC = () => {
     };
 
     async function handleDetectTablesButtonClick() {
-        console.log("table detection method", tableDetectionMethod)
+        // console.log("table detection method", tableDetectionMethod)
         try {
+            setLoading(true);
             const response = await axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
             if (response.status === 200) {
                 const allTables: TableDetectionResponse = {
                     allRectangles: response.data.tables
                 }
                 tableDataContext.setTableData(allTables)
-                console.log("All tables from context: ", tableDataContext.tableData)
+                // console.log("All tables from context: ", tableDataContext.tableData)
             }
         }
         catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
                     if (error.response.status === 404) {
-                        toast.error("No tables found PDF file")
+                        toast.error("No tables found in PDF file")
                     } 
                     else if (error.response.status === 500) {
                         toast.error('Server error');
@@ -73,6 +75,9 @@ export const PdfToolbar: React.FC = () => {
             else {
                 toast.error('Error sending request');
             }
+        }
+        finally {
+            setLoading(false);
         }
     }
 
@@ -130,13 +135,18 @@ export const PdfToolbar: React.FC = () => {
                 </FormControl>
                 
                 <Tooltip title="Detect tables in the document">
-                    <Button 
+                    <Button
                         variant="contained"
                         color="primary"
                         size="large"
                         onClick={handleDetectTablesButtonClick}
+                        disabled={loading} // Disable button while loading
+                        sx={{ minWidth: "150px" }} // Ensures button width stays the same
                     >
-                        Detect Tables
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            {loading && <CircularProgress size={20} color="inherit" />}
+                            <span>Detect Tables</span>
+                        </Box>
                     </Button>
                 </Tooltip>
             </div>

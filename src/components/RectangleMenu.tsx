@@ -1,4 +1,4 @@
-import { Box, Button, MenuItem, Paper, Select, SelectChangeEvent, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, MenuItem, Paper, Select, SelectChangeEvent, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTableData } from "../custom-context/TableContext";
 import axios from "axios";
@@ -31,12 +31,13 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     const tablesContext = useTableData();
     const [extractionMethod, setExtractionMethod] = useState<TableExtractionMethods>(TableExtractionMethods.PYMU);
     const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
+    const [loading, setLoading] = useState(false);
 
     // Update menu position when selected rectangle changes
     useEffect(() => {
         if (tablesContext.selectedRectangleId) {
             const rectangleData = tablesContext.getTableDataById(tablesContext.selectedRectangleId);
-            console.log("rect data: ", rectangleData)
+            // console.log("rect data: ", rectangleData)
             if (rectangleData && rectangleData.coordinates) {
                 const { lowerRightX, upperLeftY } = rectangleData.coordinates;
                 const absLowerRightX = percentageCoordsToAbsolute(lowerRightX, canvasWidth)
@@ -58,13 +59,13 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     };
 
     const handleExtractClick = async() => {
-        console.log(`Extract button clicked with method: ${extractionMethod}`);
+        // console.log(`Extract button clicked with method: ${extractionMethod}`);
         const selectedRectangleId = tablesContext.selectedRectangleId
         if (!selectedRectangleId) {
             return
         }
         const selectedRectangle = tablesContext.getTableDataById(selectedRectangleId)
-        console.log("Extraction for rect data", selectedRectangle)
+        // console.log("Extraction for rect data", selectedRectangle)
         if (!selectedRectangle) {
             throw new Error("Selected rectangle doesn't exist");
         }
@@ -80,12 +81,13 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
         }
 
         try {
+            setLoading(true)
             const response = await axios.get(`http://127.0.0.1:8000/pdf/table/${extractionMethod}`, {
                 params: rectData
               });
 
             if (response.status === 200) {
-                console.log('Coordinates sent successfully:', response.data);
+                // console.log('Coordinates sent successfully:', response.data);
                 tablesContext.updateExtractedData(selectedRectangleId, response.data.tableData)
             }
         }
@@ -107,6 +109,9 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
                 toast.error('Error sending coordinates');
             }
         }
+        finally {
+          setLoading(false)
+        }
     };
 
     const handleDeleteClick = () => {
@@ -115,7 +120,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
             return
         }
 
-        console.log("DELETE", selectedRectangleId)
+        // console.log("DELETE", selectedRectangleId)
         tablesContext.deleteTableRecord(selectedRectangleId)
     };
     
@@ -173,9 +178,10 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
             color="primary" 
             size="small"
             sx={{ width: '48%' }}
+            disabled={loading}
             onClick={handleExtractClick}
           >
-            Extract
+            {loading ? <CircularProgress size={20} color="inherit" /> : "Extract"}
           </Button>
           
           <Button

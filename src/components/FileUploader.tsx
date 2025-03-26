@@ -2,7 +2,7 @@ import axios from "axios";
 import { ChangeEvent, useState, useRef, DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePdf } from "../custom-context/PdfContext";
-import { Box, Button, Paper, Typography, Tooltip } from "@mui/material";
+import { Box, Button, Paper, Typography, Tooltip, CircularProgress } from "@mui/material";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { FileText } from "lucide-react";
 import { toast } from "react-toastify";
@@ -46,7 +46,13 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
     formData.append('file', file);
 
     try {
-      await axios.post("http://127.0.0.1:8000/pdf", formData, {
+      // When upload is 100% complete but before server responds, show processing state
+      const onUploadComplete = () => {
+        setStatus('processing');
+      };
+      
+      // Post the file to the server
+      const response = await axios.post("http://127.0.0.1:8000/pdf", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -55,11 +61,16 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
             ? Math.round((progressEvent.loaded * 100) / progressEvent.total) 
             : 0;
           setUploadProgress(progress);
+          
+          // When upload reaches 100%, switch to processing state
+          if (progress === 100) {
+            onUploadComplete();
+          }
         },
       });
-
+      
+      // After receiving server response, set success and navigate
       setStatus('success');
-      setUploadProgress(100);
       navigate('/process');
     } 
     catch {
@@ -132,10 +143,23 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
             variant="outlined"
             color="primary"
             size="large"
-            startIcon={<UploadFileIcon />}
+            startIcon={status !== 'uploading' && status !== 'processing' ? <UploadFileIcon /> : null}
             onClick={handleButtonClick}
+            disabled={status === 'uploading' || status === 'processing'}
           >
-            Upload PDF
+            {status === 'uploading' ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} color="inherit" />
+                <Typography variant="caption">{`${uploadProgress}%`}</Typography>
+              </Box>
+            ) : status === 'processing' ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} color="inherit" />
+                <Typography variant="caption">Processing</Typography>
+              </Box>
+            ) : (
+              'Upload PDF'
+            )}
           </Button>
         </Tooltip>
       </Box>
@@ -199,24 +223,37 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
         </Button>
 
         {status === 'uploading' && (
-          <Box sx={{ width: '80%', mt: 2 }}>
-            <div style={{ 
-              height: '8px', 
-              width: '100%', 
-              backgroundColor: '#e0e0e0', 
-              borderRadius: '4px',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                height: '100%',
-                width: `${uploadProgress}%`,
-                backgroundColor: '#1976d2',
-                borderRadius: '4px',
-                transition: 'width 0.3s ease'
-              }} />
-            </div>
-            <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
-              {uploadProgress}% uploaded
+          <Box sx={{ position: 'relative', display: 'inline-flex', mt: 2 }}>
+            <CircularProgress
+              variant="determinate"
+              value={uploadProgress}
+              size={60}
+              thickness={4}
+            />
+            <Box
+              sx={{
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                position: 'absolute',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant="caption" component="div" color="textSecondary">
+                {`${uploadProgress}%`}
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
+        {status === 'processing' && (
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <CircularProgress size={50} />
+            <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+              Processing file...
             </Typography>
           </Box>
         )}

@@ -42,22 +42,22 @@ const LandingPage: React.FC = () => {
         {/* Features */}
         <Box sx={{ mt: 8, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
           <FeatureCard 
-            title="Smart Detection" 
-            description="Our algorithm automatically identifies tables in your PDF documents." 
+            title="Detection and Extraction directly from PDF file" 
+            description="Uses PyMuPDF library to detect and extract table. Fast but detection and extraction results may not be accurate. Also can't handle tables inserted in PDF as images" 
           />
           <FeatureCard 
-            title="Easy Export" 
-            description="Extract data in CSV, Excel, or JSON formats with a single click." 
+            title="Image Processing" 
+            description="Uses image processing to detect tables and OCR to extract tabular data. Slower method but has better detection results and can handle also tables in a form of image" 
           />
           <FeatureCard 
-            title="Fast Processing" 
-            description="Get your results within seconds, even for complex documents." 
+            title="ChatGPT" 
+            description="Send table to ChatGPT to extract tabular data. Slower paid feature but mostly reliable (in case other methods fail)" 
           />
         </Box>
       </Container>
       
       {/* Footer */}
-      <Box 
+      {/* <Box 
         component="footer" 
         sx={{ 
           py: 3, 
@@ -71,7 +71,7 @@ const LandingPage: React.FC = () => {
             © {new Date().getFullYear()} PDF Table Detector | All rights reserved
           </Typography>
         </Container>
-      </Box>
+      </Box> */}
     </Box>
   );
 };

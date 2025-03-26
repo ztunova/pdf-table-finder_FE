@@ -16,6 +16,8 @@ export const TableToolbar: React.FC = () => {
         { value: TableDetectionMethods.YOLO, label: 'yolo label' },
     ];
 
+    const toolbarHeight = "50px"; // Adjust this value to match your desired height
+
     return (
         <Box 
           sx={{ 
@@ -23,62 +25,16 @@ export const TableToolbar: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             p: 2,
-            borderBottom: '1px solid #e0e0e0'
+            borderBottom: '1px solid #e0e0e0',
+            minHeight: toolbarHeight, // Add explicit minimum height
+            height: toolbarHeight // Add explicit height
           }}
         >
-            <div>
-                <ButtonGroup size="large" aria-label="drawing control button group">
-                    <Tooltip title="Lock/Unlock PDF">
-                        <Button 
-                            onClick={() => {}}
-                            color="primary"
-                        >
-                            <LockIcon fontSize="small" />
-                        </Button>
-                    </Tooltip>
-                    <Tooltip title="Enable/Disable Drawing Mode">
-                        <Button 
-                            onClick={() => {}}
-                            color="primary"
-                            variant="contained"
-                        >
-                            <CreateIcon fontSize="small" />
-                        </Button>
-                    </Tooltip>
-                </ButtonGroup>
-            </div>
+            {/* Left side - empty div with minimum dimensions to prevent collapse */}
+            <div style={{ minWidth: '1px', minHeight: '1px' }}></div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <FormControl variant="standard" sx={{ width: 'auto' }}>
-                    <InputLabel id="table-detection-method-select-label">Table Detection Method</InputLabel>
-                    <Select
-                        labelId="table-detection-method-select-label"
-                        id="table-detection-method-select"
-                        value={tableDetectionMethod}
-                        onChange={() => {}}
-                        label="Table Detection Method"
-                        size="medium"
-                        sx={{ minWidth: '12ch' }}
-                    >
-                    {menuItems.map((item) => (
-                        <MenuItem key={item.value} value={item.value}>
-                            {item.label}
-                        </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                
-                <Tooltip title="Detect tables in the document">
-                    <Button 
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        onClick={() => {}}
-                    >
-                        Detect Tables
-                    </Button>
-                </Tooltip>
-            </div>
+            {/* Right side - empty div with minimum dimensions to prevent collapse */}
+            <div style={{ minWidth: '1px', minHeight: '1px' }}></div>
         </Box>
     );
 }

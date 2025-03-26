@@ -83,7 +83,7 @@ const TablesViewer: React.FC = () => {
       {/* Tab headers - now using the TableTabs component */}
       <Box sx={{ 
         padding: '8px 16px 0 16px', 
-        mt: 2 // Keep margin-top for tabs to separate from toolbar
+        // mt: 2 // Keep margin-top for tabs to separate from toolbar
       }}>
         <TableTabs 
           activeTabId={activeTabId} 

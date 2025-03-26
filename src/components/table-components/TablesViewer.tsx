@@ -1,7 +1,9 @@
 // TablesViewer.tsx
 import React, { useState, useEffect } from 'react';
 import SingleTable from "./SingleTable";
+import TableTabs from "./TableTabs";
 import { useTableData } from '../../custom-context/TableContext';
+import { Box } from '@mui/material';
 
 const TablesViewer: React.FC = () => {
   const tablesContext = useTableData();
@@ -53,75 +55,63 @@ const TablesViewer: React.FC = () => {
     tablesContext.setSelectedRectangle(tabId)
   };
 
-  // Generate tab title from table data
-  const getTabTitle = (tableId: string) => {
-    const tableData = tablesContext.getTableDataById(tableId);
-    if (!tableData) return "Unknown Table";
-    
-    return tableData.title || `Table ${tableId.substring(0, 6)}...`;
-  };
-
   // Handle empty state
   if (tablesContext.extractedTables.length === 0) {
     return (
-      <div style={{ 
-        height: '100%', 
+      <Box sx={{ 
+        height: '95%', 
         display: 'flex', 
         flexDirection: 'column', 
         padding: '16px',
         justifyContent: 'center',
         alignItems: 'center',
-        color: '#666'
+        color: '#666',
+        borderRadius: 1,
+        bgcolor: '#f5f5f5'
       }}>
         <p>No tables with extracted data available.</p>
         <p>Draw rectangles over tables and extract data to view them here.</p>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '16px' }}>
-      {/* Tab headers */}
-      <div style={{ 
-        display: 'flex', 
-        borderBottom: '1px solid #ddd',
-        overflowX: 'auto',
+    <Box sx={{ 
+      height: '95%', 
+      display: 'flex', 
+      flexDirection: 'column',
+      borderRadius: 1,
+      bgcolor: '#f5f5f5',
+      overflow: 'hidden' // Prevent outer scrolling
+    }}>
+      {/* Tab headers - now using the TableTabs component */}
+      <Box sx={{ 
+        padding: '8px 16px 0 16px', 
+        mt: 2 // Keep margin-top for tabs to separate from toolbar
       }}>
-        {/* Dynamic tabs for extracted tables */}
-        {tablesContext.extractedTables.map(tableId => (
-          <div
-            key={tableId}
-            onClick={() => handleTabClick(tableId)}
-            style={{
-              padding: '10px 15px',
-              cursor: 'pointer',
-              backgroundColor: activeTabId === tableId ? '#f5f5f5' : 'transparent',
-              borderBottom: activeTabId === tableId ? '2px solid #1976d2' : 'none',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {getTabTitle(tableId)}
-          </div>
-        ))}
-      </div>
+        <TableTabs 
+          activeTabId={activeTabId} 
+          onTabClick={handleTabClick} 
+        />
+      </Box>
       
-      {/* Tab content */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      {/* Tab content - now in a separate scrollable container */}
+      <Box sx={{ 
+        flex: 1, 
+        overflow: 'auto', // This makes the content scrollable
+        padding: '0 16px 16px 16px'
+      }}>
         {/* Only render the SingleTable component for the active tab */}
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          {/* Only render the SingleTable component for the active tab */}
-          {activeTabId && (
-            <SingleTable 
-              id={activeTabId}
-              isActive={true}
-              rectangleId={activeTabId}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+        {activeTabId && (
+          <SingleTable 
+            id={activeTabId}
+            isActive={true}
+            rectangleId={activeTabId}
+          />
+        )}
+      </Box>
+    </Box>
   );
-
 };
 
 export default TablesViewer;

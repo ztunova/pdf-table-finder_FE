@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { TableBoundingBox, TableData, TableDetectionResponse } from "../shared-types";
 import { v4 as uuidv4 } from 'uuid';
+import { usePdf } from "./PdfContext";
 
 // PDF PAGE NUMBER IS COUNTED FROM 0 HERE BUT FROM 1 IN DOCUMENT!!!
 
@@ -25,15 +26,26 @@ interface TableDataContextType {
     setSelectedRectangle: (rectangleId: string | null) => void;
     getTableDataById: (rectangleId: string) => TableData | null;
     updateExtractedData: (rectangleId: string, data: string[][] | null) => void;
+    getExtractedTableData: () => TableDataMap;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
 
 export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { pdfUrl } = usePdf();
     const [tableData, setTableDataState] = useState<TableDataMap | null>(null);
     const [tablesPerPage, setTablesPerPage] = useState<PageTablesMap>({});
     const [selectedRectangleId, setSelectedRectangleIdState] = useState<string | null>(null);
     const [extractedTables, setExtractedTablesState] = useState<string[]>([]);
+
+        // Reset table data when PDF URL changes
+    useEffect(() => {
+        // if (pdfUrl !== previousPdfUrl) {
+            console.log('PDF URL changed, resetting all table data');
+            resetAllTableData();
+            // setPreviousPdfUrl(pdfUrl);
+        // }
+      }, [pdfUrl]);
 
     useEffect(() => {
       updateExtractedTableIds();
@@ -260,6 +272,31 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       setExtractedTablesState(extractedTableIds);
       console.log('Updated extracted tables list:', extractedTableIds);
     };
+
+    const getExtractedTableData = (): TableDataMap => {
+      if (!tableData || extractedTables.length === 0) {
+        return {};
+      }
+      
+      // Create a new object with only the entries whose keys are in extractedTables
+      const extractedTableData: TableDataMap = {};
+      
+      extractedTables.forEach(id => {
+        if (tableData[id]) {
+          extractedTableData[id] = tableData[id];
+        }
+      });
+      
+      return extractedTableData;
+    };
+
+    const resetAllTableData = () => {
+      console.log('Resetting all table data');
+      setTableDataState(null);
+      setTablesPerPage({});
+      setSelectedRectangleIdState(null);
+      setExtractedTablesState([]);
+    };
   
     return (
       <TableDataContext.Provider
@@ -276,6 +313,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           setSelectedRectangle,
           getTableDataById,
           updateExtractedData,
+          getExtractedTableData,
         }}
       >
         {children}

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTableData } from "../custom-context/TableContext";
 import axios from "axios";
 import { percentageCoordsToAbsolute } from "../shared-types";
+import { toast } from "react-toastify";
 
 
 interface RectangleMenuProps {
@@ -91,26 +92,19 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
         catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
-                    console.error(`Error status: ${error.response.status}`);
-                    console.error('Error data:', error.response.data);
-                    
-                    // Handle specific status codes
                     if (error.response.status === 404) {
-                        console.error('Resource not found');
-                    } 
-                    else if (error.response.status === 401) {
-                        console.error('Unauthorized access');
+                        toast.error("No table found within given coordinates")
                     } 
                     else if (error.response.status === 500) {
-                        console.error('Server error');
+                        toast.error('Server error');
                     }
                 } 
                 else {
-                    console.error('No response received:', error.message);
+                    toast.error('No response received');
                 }
             } 
             else {
-                console.error('Error sending coordinates:', error);
+                toast.error('Error sending coordinates');
             }
         }
     };

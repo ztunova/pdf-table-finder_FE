@@ -1,73 +1,20 @@
 import { Box, Button, ButtonGroup, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
-import { useDrawing } from "../custom-context/DrawingContext";
 import { useState } from "react";
-import axios from "axios";
-import { useTableData } from "../custom-context/TableContext";
-import { TableDetectionResponse } from "../shared-types";
 import LockIcon from '@mui/icons-material/Lock';
 import CreateIcon from '@mui/icons-material/Create';
-import { toast } from "react-toastify";
 
 enum TableDetectionMethods {
     PYMU = 'pymu',
     YOLO = 'yolo',
 }
 
-export const PdfToolbar: React.FC = () => {
-    const {isDrawingEnabled, setIsDrawingEnabled} = useDrawing();
+export const TableToolbar: React.FC = () => {
     const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
-    const tableDataContext = useTableData();
 
     const menuItems = [
         { value: TableDetectionMethods.PYMU, label: 'pymu label' },
         { value: TableDetectionMethods.YOLO, label: 'yolo label' },
     ];
-    
-    const handleTableDetectionChange = (event: SelectChangeEvent) => {
-        const selectedMethod = event.target.value as TableDetectionMethods
-        setTableDetectionMethod(selectedMethod);
-    };
-
-    const handleLockToggle = () => {
-        console.log("Lock/Unlock functionality toggled");
-        // Add your lock functionality here
-    };
-
-    const handleDrawingToggle = () => {
-        setIsDrawingEnabled(prev => !prev);
-    };
-
-    async function handleDetectTablesButtonClick() {
-        console.log("table detection method", tableDetectionMethod)
-        try {
-            const response = await axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
-            if (response.status === 200) {
-                const allTables: TableDetectionResponse = {
-                    allRectangles: response.data.tables
-                }
-                tableDataContext.setTableData(allTables)
-                console.log("All tables from context: ", tableDataContext.tableData)
-            }
-        }
-        catch (error) {
-            if (axios.isAxiosError(error)) {
-                if (error.response) {
-                    if (error.response.status === 404) {
-                        toast.error("No tables found PDF file")
-                    } 
-                    else if (error.response.status === 500) {
-                        toast.error('Server error');
-                    }
-                } 
-                else {
-                    toast.error('No response received');
-                }
-            } 
-            else {
-                toast.error('Error sending request');
-            }
-        }
-    }
 
     return (
         <Box 
@@ -83,17 +30,17 @@ export const PdfToolbar: React.FC = () => {
                 <ButtonGroup size="large" aria-label="drawing control button group">
                     <Tooltip title="Lock/Unlock PDF">
                         <Button 
-                            onClick={handleLockToggle}
-                            color={isDrawingEnabled ? "primary" : "inherit"}
+                            onClick={() => {}}
+                            color="primary"
                         >
                             <LockIcon fontSize="small" />
                         </Button>
                     </Tooltip>
                     <Tooltip title="Enable/Disable Drawing Mode">
                         <Button 
-                            onClick={handleDrawingToggle}
-                            color={isDrawingEnabled ? "primary" : "inherit"}
-                            variant={isDrawingEnabled ? "contained" : "outlined"}
+                            onClick={() => {}}
+                            color="primary"
+                            variant="contained"
                         >
                             <CreateIcon fontSize="small" />
                         </Button>
@@ -108,7 +55,7 @@ export const PdfToolbar: React.FC = () => {
                         labelId="table-detection-method-select-label"
                         id="table-detection-method-select"
                         value={tableDetectionMethod}
-                        onChange={handleTableDetectionChange}
+                        onChange={() => {}}
                         label="Table Detection Method"
                         size="medium"
                         sx={{ minWidth: '12ch' }}
@@ -126,7 +73,7 @@ export const PdfToolbar: React.FC = () => {
                         variant="contained"
                         color="primary"
                         size="large"
-                        onClick={handleDetectTablesButtonClick}
+                        onClick={() => {}}
                     >
                         Detect Tables
                     </Button>

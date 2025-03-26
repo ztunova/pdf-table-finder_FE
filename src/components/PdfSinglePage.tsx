@@ -1,6 +1,7 @@
 import { Page } from "react-pdf";
 import { DrawingCanvas } from "./DrawingCanvas";
 import { useRef, useState } from "react";
+import { Box } from "@mui/material";
 
 interface PdfSinglePageProps {
     pageNumber: number,
@@ -20,11 +21,12 @@ export const PdfSinglePage: React.FC<PdfSinglePageProps> = ({pageNumber}) => {
   }
 
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
+    <Box ref={containerRef} sx={{ position: 'relative', maxWidth: '100%', mb: 2, boxShadow: '0 4px 8px rgba(0,0,0,0.2)', border: '1px solid #e0e0e0' }}>
       <Page 
         pageNumber={pageNumber} 
         onLoadSuccess={onPageLoad}
-        width={700}
+        width={undefined}
+        scale={1}
         noData={""}
       />
       {pageSize.width > 0 && (
@@ -34,6 +36,6 @@ export const PdfSinglePage: React.FC<PdfSinglePageProps> = ({pageNumber}) => {
           canvasHeight={pageSize.height}
         />
       )}
-    </div>
+    </Box>
   );
 }

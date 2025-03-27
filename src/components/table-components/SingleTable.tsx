@@ -146,42 +146,52 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
 
   const applySplit = () => {
     if (!splitCellCoords || !splitChar) return;
-
+  
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
-
+  
     const [row, col] = splitCellCoords;
     const cellValue = hotInstance.getDataAtCell(row, col);
     if (!cellValue || typeof cellValue !== 'string' || cellValue.trim() === '') return;
-
+  
     const splitValues = cellValue.split(splitChar).map(value => value.trim());
-
-    if (splitValues.length === 1) {
-        closeDialog();
-        return;
+  
+    // If no actual splitting occurs, just close the dialog and return
+    if (splitValues.length <= 1) {
+      closeDialog();
+      return;
     }
-
+  
+    // Calculate how many new cells we need for the split values
+    const cellsNeeded = splitValues.length - 1;
+    
+    // Check if there are enough empty cells to the right of the current cell
+    let emptyCellsCount = 0;
     const totalCols = hotInstance.countCols();
-    const requiredCols = col + splitValues.length;
-    if (requiredCols > totalCols) {
-      hotInstance.alter('insert_col_end', totalCols, requiredCols - totalCols);
+    
+    for (let checkCol = col + 1; checkCol < totalCols; checkCol++) {
+      const cellContent = hotInstance.getDataAtCell(row, checkCol);
+      if (cellContent === null || cellContent === '' || cellContent === undefined) {
+        emptyCellsCount++;
+      } else {
+        // Stop counting as soon as we encounter a non-empty cell
+        break;
+      }
     }
-
-    // Shift existing data only if there is something to shift
-    const maxShift = splitValues.length - 1;
-    for (let shiftCol = totalCols - 1; shiftCol >= col + maxShift; shiftCol--) {
-        const shiftValue = hotInstance.getDataAtCell(row, shiftCol - maxShift);
-        if (shiftValue !== null && shiftValue !== undefined) {
-            hotInstance.setDataAtCell(row, shiftCol, shiftValue);
-            hotInstance.setDataAtCell(row, shiftCol - maxShift, ''); // Clear old position
-        }
+    
+    // Calculate how many new columns we need to add
+    const newColumnsNeeded = Math.max(0, cellsNeeded - emptyCellsCount);
+    
+    // Insert new columns if needed
+    if (newColumnsNeeded > 0) {
+      hotInstance.alter('insert_col_end', col + emptyCellsCount, newColumnsNeeded);
     }
-
-    // Insert split values into the row
+  
+    // Place split values in the cells
     splitValues.forEach((value, index) => {
-        hotInstance.setDataAtCell(row, col + index, value);
+      hotInstance.setDataAtCell(row, col + index, value);
     });
-
+  
     // Update table state
     handleTableUpdate();
     closeDialog();

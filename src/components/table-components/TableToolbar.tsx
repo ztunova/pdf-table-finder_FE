@@ -1,22 +1,9 @@
-import { Box, Button, ButtonGroup, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
-import { useState } from "react";
-import LockIcon from '@mui/icons-material/Lock';
-import CreateIcon from '@mui/icons-material/Create';
+import { Box } from "@mui/material";
 
-enum TableDetectionMethods {
-    PYMU = 'pymu',
-    YOLO = 'yolo',
-}
 
 export const TableToolbar: React.FC = () => {
-    const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
 
-    const menuItems = [
-        { value: TableDetectionMethods.PYMU, label: 'pymu label' },
-        { value: TableDetectionMethods.YOLO, label: 'yolo label' },
-    ];
-
-    const toolbarHeight = "50px"; // Adjust this value to match your desired height
+    const toolbarHeight = "50px";
 
     return (
         <Box 
@@ -26,8 +13,8 @@ export const TableToolbar: React.FC = () => {
             justifyContent: 'space-between',
             p: 2,
             borderBottom: '1px solid #e0e0e0',
-            minHeight: toolbarHeight, // Add explicit minimum height
-            height: toolbarHeight // Add explicit height
+            minHeight: toolbarHeight,
+            height: toolbarHeight
           }}
         >
             {/* Left side - empty div with minimum dimensions to prevent collapse */}

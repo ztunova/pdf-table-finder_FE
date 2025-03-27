@@ -1,8 +1,8 @@
 import { Box, Button, CircularProgress, MenuItem, Paper, Select, SelectChangeEvent, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useTableData } from "../custom-context/TableContext";
+import { useTableData } from "../../custom-context/TableContext";
 import axios from "axios";
-import { percentageCoordsToAbsolute } from "../shared-types";
+import { percentageCoordsToAbsolute } from "../../shared-types";
 import { toast } from "react-toastify";
 
 
@@ -17,8 +17,6 @@ interface ExtractTableRequestParams {
     upperLeftY: number;
     lowerRightX: number;
     lowerRightY: number;
-    // rectWidth: number;
-    // rectHeight: number;
   }
 
 enum TableExtractionMethods {
@@ -37,7 +35,6 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     useEffect(() => {
         if (tablesContext.selectedRectangleId) {
             const rectangleData = tablesContext.getTableDataById(tablesContext.selectedRectangleId);
-            // console.log("rect data: ", rectangleData)
             if (rectangleData && rectangleData.coordinates) {
                 const { lowerRightX, upperLeftY } = rectangleData.coordinates;
                 const absLowerRightX = percentageCoordsToAbsolute(lowerRightX, canvasWidth)
@@ -59,13 +56,11 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     };
 
     const handleExtractClick = async() => {
-        // console.log(`Extract button clicked with method: ${extractionMethod}`);
         const selectedRectangleId = tablesContext.selectedRectangleId
         if (!selectedRectangleId) {
             return
         }
         const selectedRectangle = tablesContext.getTableDataById(selectedRectangleId)
-        // console.log("Extraction for rect data", selectedRectangle)
         if (!selectedRectangle) {
             throw new Error("Selected rectangle doesn't exist");
         }
@@ -76,8 +71,6 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
             upperLeftY: selectedRectangle.coordinates.upperLeftY,
             lowerRightX: selectedRectangle.coordinates.lowerRightX,
             lowerRightY: selectedRectangle.coordinates.lowerRightY,
-            // rectWidth: target.width * target.scaleX,
-            // rectHeight: target.height * target.scaleY,
         }
 
         try {
@@ -87,7 +80,6 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
               });
 
             if (response.status === 200) {
-                // console.log('Coordinates sent successfully:', response.data);
                 tablesContext.updateExtractedData(selectedRectangleId, response.data.tableData)
             }
         }
@@ -119,12 +111,9 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
         if (!selectedRectangleId) {
             return
         }
-
-        // console.log("DELETE", selectedRectangleId)
         tablesContext.deleteTableRecord(selectedRectangleId)
     };
     
-    // Extraction methods available to the user
     const extractionMethods = [
       { value: TableExtractionMethods.PYMU, label: 'Extract from PDF text' },
       { value: TableExtractionMethods.YOLO, label: 'Image processing' },

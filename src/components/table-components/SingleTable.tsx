@@ -76,7 +76,6 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     
     // Only update if data has actually changed
     if (currentDataString !== previousDataRef.current) {
-      // console.log("DATA CHANGED", tablesContext.getTableDataById(rectangleId))
       previousDataRef.current = currentDataString;
       
       // Use setTimeout to break the synchronous update cycle
@@ -86,8 +85,6 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     }
   };
 
-
-  // New custom function added
   const mergeSelectedCellsText = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
@@ -144,10 +141,6 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
        return PositionCategory.SAME_COLUMN
     };
 
-    // Check if all are in different rows and columns
-    // const uniqueRows = new Set(positions.map(pos => pos[0])).size;
-    // const uniqueColumns = new Set(positions.map(pos => pos[1])).size;
-
     return PositionCategory.MIXED
   }
 
@@ -174,7 +167,7 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
       hotInstance.alter('insert_col_end', totalCols, requiredCols - totalCols);
     }
 
-    // Shift existing data **only if there is something to shift**
+    // Shift existing data only if there is something to shift
     const maxShift = splitValues.length - 1;
     for (let shiftCol = totalCols - 1; shiftCol >= col + maxShift; shiftCol--) {
         const shiftValue = hotInstance.getDataAtCell(row, shiftCol - maxShift);
@@ -231,12 +224,9 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
         rowHeaders={true}
         colHeaders={true}
         height="auto"
-        // minCols={10}
-        // minRows={10}
         autoWrapRow={true}
         autoWrapCol={true}
         contextMenu={contextMenuOptions}
-        // mergeCells={true}
         manualRowMove={true}
         manualColumnMove={true}
         manualColumnResize={true}
@@ -253,7 +243,7 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
       <Dialog 
           open={isDialogOpen} 
           onClose={closeDialog}
-          maxWidth="xs" // Matches your example
+          maxWidth="xs"
           fullWidth
       >
           <DialogTitle>Split Cell</DialogTitle>
@@ -273,12 +263,11 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
               <Button onClick={applySplit} variant="contained" color="primary">
                   Split
               </Button>
-              <Button onClick={closeDialog} variant="outlined" color="error">
+              <Button onClick={closeDialog} variant="outlined" color="inherit">
                   Cancel
               </Button>
           </DialogActions>
       </Dialog>
-
     </div>
   );
 }

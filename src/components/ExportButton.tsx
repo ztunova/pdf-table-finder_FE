@@ -51,8 +51,6 @@ export default function ExportButton() {
 
     const handleExport = async (format: ExportFormat) => {
         setExportFormat(format);
-        // Implement your export logic here
-        // console.log(`Exporting to ${format}`);
         const tableData = getExtractedTableData()
 
         try {
@@ -82,10 +80,6 @@ export default function ExportButton() {
         catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error.response) {
-                    console.error(`Error status: ${error.response.status}`);
-                    console.error('Error data:', error.response.data);
-                    
-                    // Handle specific status codes
                     if (error.response.status === 404) {
                         console.error('Resource not found');
                     } 
@@ -121,7 +115,7 @@ export default function ExportButton() {
             <Tooltip title="Export data">
               <Button
                 startIcon={<FileDownloadIcon />}
-                onClick={() => handleExport(exportFormat)} // Default export format
+                onClick={() => handleExport(exportFormat)}
               >
                 Export to {menuItems.find(item => item.value === exportFormat)?.label}
               </Button>
@@ -163,8 +157,6 @@ export default function ExportButton() {
               </MenuItem>
             ))}
           </Menu>
-    
-    
         </Box>
     );
 }

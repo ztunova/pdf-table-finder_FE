@@ -34,7 +34,7 @@ export const PdfProvider: React.FC<{ children: ReactNode }> = ({children}) => {
         setInternalPdfName(newName);
     }
 
-    // Convenience method to set both URL and name at once
+    // Set both URL and name at once
     const setPdfData = (newUrl: string | null, newName: string | null) => {
         setPdfUrl(newUrl);
         setPdfName(newName);

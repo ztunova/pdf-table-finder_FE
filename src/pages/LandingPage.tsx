@@ -1,24 +1,21 @@
 import React from 'react';
 import { Box, Container, Typography, Paper } from '@mui/material';
 import Header from '../components/Header';
-import DragAndDropArea from '../components/DragAndDropArea';
 import FileUploader from '../components/FileUploader';
 
 const LandingPage: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '80vw', height: '100vh' }}>
-      {/* Header */}
       <Header />
       
       {/* Main Content */}
       <Container maxWidth="md" sx={{ flexGrow: 1, py: 6 }}>
-        {/* Hero Section */}
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h4" component="h1" gutterBottom>
             Extract Tables from Your PDF Documents
           </Typography>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
-            Quickly identify and extract tabular data from any PDF file with our intelligent table detection tool.
+            Identify and extract tabular data from any PDF file.
           </Typography>
         </Box>
         
@@ -35,7 +32,6 @@ const LandingPage: React.FC = () => {
             boxSizing: 'border-box',
           }}
         >
-          {/* <DragAndDropArea /> */}
           <FileUploader variant='area'/>
         </Paper>
         
@@ -55,23 +51,6 @@ const LandingPage: React.FC = () => {
           />
         </Box>
       </Container>
-      
-      {/* Footer */}
-      {/* <Box 
-        component="footer" 
-        sx={{ 
-          py: 3, 
-          px: 2, 
-          mt: 'auto', 
-          backgroundColor: (theme) => theme.palette.grey[100]
-        }}
-      >
-        <Container maxWidth="md">
-          <Typography variant="body2" color="text.secondary" align="center">
-            © {new Date().getFullYear()} PDF Table Detector | All rights reserved
-          </Typography>
-        </Container>
-      </Box> */}
     </Box>
   );
 };

@@ -1,4 +1,3 @@
-// TablesViewer.tsx
 import React, { useState, useEffect } from 'react';
 import SingleTable from "./SingleTable";
 import TableTabs from "./TableTabs";
@@ -24,16 +23,9 @@ const TablesViewer: React.FC = () => {
             const newActiveTabId = tablesContext.extractedTables[tablesContext.extractedTables.length - 1];
             setActiveTabId(newActiveTabId);
           }
-          else {
-            // console.log("KEEP CURRENT TAB")
-          }
-        }
-        else {
-          // console.log("NO RECT AND NO TAB SELECTED")
         }
       }
       else {
-        // console.log("TAB NULL")
         setActiveTabId(null)
       }
     }
@@ -45,7 +37,6 @@ const TablesViewer: React.FC = () => {
     }
   }, [activeTabId])
 
-  // Handle tab click
   const handleTabClick = (tabId: string) => {
     setActiveTabId(tabId);
     tablesContext.setSelectedRectangle(tabId)
@@ -80,7 +71,7 @@ const TablesViewer: React.FC = () => {
       bgcolor: '#f5f5f5',
       overflow: 'hidden' // Prevent outer scrolling
     }}>
-      {/* Tab headers - now using the TableTabs component */}
+      {/* Tab headers */}
       <Box sx={{ 
         padding: '8px 16px 0 16px', 
         // mt: 2 // Keep margin-top for tabs to separate from toolbar
@@ -91,10 +82,10 @@ const TablesViewer: React.FC = () => {
         />
       </Box>
       
-      {/* Tab content - now in a separate scrollable container */}
+      {/* Tab content */}
       <Box sx={{ 
         flex: 1, 
-        overflow: 'auto', // This makes the content scrollable
+        overflow: 'auto', // make the content scrollable
         padding: '0 16px 16px 16px'
       }}>
         {/* Only render the SingleTable component for the active tab */}

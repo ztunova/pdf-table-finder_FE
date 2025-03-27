@@ -38,12 +38,9 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [selectedRectangleId, setSelectedRectangleIdState] = useState<string | null>(null);
     const [extractedTables, setExtractedTablesState] = useState<string[]>([]);
 
-        // Reset table data when PDF URL changes
+    // Reset table data when PDF URL changes
     useEffect(() => {
-        // if (pdfUrl !== previousPdfUrl) {
-            resetAllTableData();
-            // setPreviousPdfUrl(pdfUrl);
-        // }
+        resetAllTableData();
       }, [pdfUrl]);
 
     useEffect(() => {
@@ -85,7 +82,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const getTablesForPage = (pageNumber: number): TableData[] => {
       const tableIdsForPage: string[] = tablesPerPage[pageNumber-1] || []
-      // console.log("table ids for page", tableIdsForPage)
       const rectDataForPage: TableData[] = []
       if (tableData) {
         for (const rectId of tableIdsForPage) {
@@ -133,7 +129,6 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
 
     const deleteTableRecord = (rectangleId: string): void => {
-      // Input validation
       if (!rectangleId) {
         return;
       }
@@ -153,7 +148,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         setSelectedRectangleIdState(null);
       }
 
-      // Check if the rectangle is in extractedTables list and remove it immediately
+      // Check if the rectangle is in extractedTables list and remove it
       if (extractedTables.includes(rectangleId)) {
         setExtractedTablesState(prevExtractedTables => 
           prevExtractedTables.filter(id => id !== rectangleId)

@@ -1,4 +1,3 @@
-// TableTabs.tsx
 import React from 'react';
 import { useTableData } from '../../custom-context/TableContext';
 import { Box } from '@mui/material';
@@ -14,9 +13,11 @@ const TableTabs: React.FC<TableTabsProps> = ({ activeTabId, onTabClick }) => {
   // Generate tab title from table data
   const getTabTitle = (tableId: string) => {
     const tableData = tablesContext.getTableDataById(tableId);
-    if (!tableData) return "Unknown Table";
+    if (!tableData) { 
+      return "Unknown Table" 
+    };
     
-    return tableData.title || `Table ${tableId.substring(0, 6)}...`;
+    return tableData.title || "Unknown Table Title";
   };
 
   return (

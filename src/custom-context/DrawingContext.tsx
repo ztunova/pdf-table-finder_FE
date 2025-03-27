@@ -10,7 +10,7 @@ interface DrawingContextType {
 const DrawingContext = createContext<DrawingContextType | undefined>(undefined)
 
 export const DrawingProvider: React.FC<{ children: ReactNode }> = ({children}) => {
-    // This state controls whether rectangle drawing is enabled or disabled
+    // This state controls whether rectangle drawing is enabled or disabled and locked state
     const [isDrawingEnabled, setIsDrawingEnabled] = useState<boolean>(false);
     const [isDrawingLocked, setIsDrawingLocked] = useState<boolean>(false);
 

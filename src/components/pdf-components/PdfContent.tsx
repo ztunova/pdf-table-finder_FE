@@ -3,8 +3,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import { Box } from '@mui/material';
 import { useState } from 'react';
 import { Document, pdfjs } from 'react-pdf';
+import { usePdf } from '../../custom-context/PdfContext';
 import { PdfSinglePage } from './PdfSinglePage';
-import { usePdf } from '../custom-context/PdfContext';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',

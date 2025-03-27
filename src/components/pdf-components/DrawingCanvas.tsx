@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Canvas, Control, Rect, TPointerEvent, TPointerEventInfo, util } from 'fabric';
-import { useDrawing } from '../custom-context/DrawingContext';
-import { useTableData } from '../custom-context/TableContext';
-import { absoluteCoordsToPercentage, percentageCoordsToAbsolute, RectWithData, TableBoundingBox } from '../shared-types';
+import { Canvas, Rect, TPointerEvent, TPointerEventInfo } from 'fabric';
+import { useDrawing } from '../../custom-context/DrawingContext';
+import { useTableData } from '../../custom-context/TableContext';
+import { absoluteCoordsToPercentage, percentageCoordsToAbsolute, RectWithData, TableBoundingBox } from '../../shared-types';
 import RectangleMenu from './RectangleMenu';
 
-// pdf page number je cislovane od 1 na FE, od 0 na BE
+// !!! pdf page number je cislovane od 1 na FE, od 0 na BE
 interface DrawingCanvasProps {
   pdfPageNumber: number;
   canvasWidth: number;
@@ -38,9 +38,6 @@ const activeCanvasRegistry = {
 };
 
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, canvasWidth, canvasHeight }) => {
-  // const rectangleMapping = useRectangleMapping();
-  const rectCounter = useRef<number>(1);
-
   const drawingContext = useDrawing();
   // useRef for storing values that we need to access throughout the component's lifecycle but don't need to trigger re-renders
   // usage of useState instead of useRef would cause unnecessary re-renders
@@ -52,7 +49,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
   // We need both because:
   // 1. Fabric.js needs the HTML canvas element to initialize
   // 2. We need the Fabric.js canvas instance to control drawing features
-  // access using fabricRef.current
   const fabricRef = useRef<Canvas>();
   
   // tracking if we are currently in the process of drawing rectangle
@@ -63,8 +59,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
   // Stores the current rectangle being drawn
   // Used to keep track of which rectangle we're currently drawing so we can update it during mouse move
   const rectRef = useRef<RectWithData>();
+
   const tablesContext = useTableData();
-  const pageTables = tablesContext.getTablesForPage(pdfPageNumber)
   const [isSelectedRectOnPage, setIsSelectedRectOnPage] = useState(false);
 
   // Update the state when selected rectangle changes or page changes
@@ -122,7 +118,6 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
       const width = absLowerRightX - absUpperLeftX;
       const height = absLowerRightY - absUpperLeftY;
 
-
       // Create new rectangle to canvas
       const canvasRect = new Rect({
         left: absUpperLeftX,
@@ -139,11 +134,9 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ pdfPageNumber, can
       }
 
       canvas.add(canvasRect)
-
     })
 
     canvas.renderAll()
-
   }, [pdfPageNumber, tablesContext.tablesPerPage]);
 
   useEffect(() => {

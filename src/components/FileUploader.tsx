@@ -71,7 +71,7 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
       
       // After receiving server response, set success and navigate
       setStatus('success');
-      navigate('/process');
+      navigate('/workplace');
     } 
     catch {
       setStatus('error');

@@ -1,9 +1,9 @@
 import { Box, Button, ButtonGroup, CircularProgress, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
-import { useDrawing } from "../custom-context/DrawingContext";
+import { useDrawing } from "../../custom-context/DrawingContext";
 import { useState } from "react";
 import axios from "axios";
-import { useTableData } from "../custom-context/TableContext";
-import { TableDetectionResponse } from "../shared-types";
+import { useTableData } from "../../custom-context/TableContext";
+import { TableDetectionResponse } from "../../shared-types";
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import CreateIcon from '@mui/icons-material/Create';
@@ -31,7 +31,6 @@ export const PdfToolbar: React.FC = () => {
     };
 
     const handleLockToggle = () => {
-        // console.log("Lock/Unlock functionality toggled");
         drawingContext.setIsDrawingLocked(prev => !prev)
     };
 
@@ -46,7 +45,6 @@ export const PdfToolbar: React.FC = () => {
     };
 
     async function handleDetectTablesButtonClick() {
-        // console.log("table detection method", tableDetectionMethod)
         try {
             setLoading(true);
             const response = await axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
@@ -55,7 +53,6 @@ export const PdfToolbar: React.FC = () => {
                     allRectangles: response.data.tables
                 }
                 tableDataContext.setTableData(allTables)
-                // console.log("All tables from context: ", tableDataContext.tableData)
             }
         }
         catch (error) {

@@ -1,17 +1,16 @@
 import Header from "../components/Header";
-import PdfContent from "../components/PdfContent";
-import { PdfToolbar } from "../components/PdfToolbar";
+import { PdfToolbar } from "../components/pdf-components/PdfToolbar";
 import TablesViewer from "../components/table-components/TablesViewer";
 import FileUploader from "../components/FileUploader";
 import { Box, Container } from '@mui/material';
 import { DrawingProvider } from "../custom-context/DrawingContext";
 import { TableToolbar } from "../components/table-components/TableToolbar";
 import ExportButton from "../components/ExportButton";
+import PdfContent from "../components/pdf-components/PdfContent";
 
 const MainPage: React.FC = () => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', width: '80vw', height: '100vh' }}>
-        {/* Header */}
         <Header />
         
         {/* Content Section */}
@@ -85,7 +84,7 @@ const MainPage: React.FC = () => {
               gap: 2,
               height: '100%' 
             }}>
-              <TableToolbar /> {/* Using PdfToolbar as placeholder */}
+              <TableToolbar />
               <Box sx={{ 
                 flexGrow: 1, 
                 overflow: 'hidden',

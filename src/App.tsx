@@ -32,7 +32,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/process" element={<MainPage />} />
+              <Route path="/workplace" element={<MainPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>

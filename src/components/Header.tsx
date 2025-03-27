@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Toolbar, Typography } from "@mui/material";
 import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,10 +8,6 @@ const Header: React.FC = () => {
 
     const onLogoClick = () => {
         navigate('/');
-    }
-
-    const onAboutClick = () => {
-        // console.log("about clicked")
     }
 
     return (
@@ -35,9 +31,6 @@ const Header: React.FC = () => {
                     PDF Table Detector
                 </Typography>
             </Box>
-            {/* <Button color="inherit" onClick={onAboutClick}>
-            About
-            </Button> */}
         </Toolbar>
         </AppBar>
     );

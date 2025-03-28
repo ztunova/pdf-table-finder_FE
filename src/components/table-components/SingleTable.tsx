@@ -144,13 +144,10 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     return PositionCategory.MIXED
   }
 
-  const applySplit = () => {
-    if (!splitCellCoords || !splitChar) return;
-  
+  const splitSingleCell = (row: number, col: number) => {
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
-  
-    const [row, col] = splitCellCoords;
+
     const cellValue = hotInstance.getDataAtCell(row, col);
     if (!cellValue || typeof cellValue !== 'string' || cellValue.trim() === '') return;
   
@@ -191,6 +188,16 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     splitValues.forEach((value, index) => {
       hotInstance.setDataAtCell(row, col + index, value);
     });
+  } 
+
+  const applySplit = () => {
+    if (!splitCellCoords || !splitChar) return;
+  
+    const hotInstance = hotTableRef.current?.hotInstance;
+    if (!hotInstance) return;
+  
+    const [row, col] = splitCellCoords;
+    splitSingleCell(row, col)
   
     // Update table state
     handleTableUpdate();

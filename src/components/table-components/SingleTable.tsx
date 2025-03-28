@@ -9,12 +9,6 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } 
 // register Handsontable's modules
 registerAllModules();
 
-enum PositionCategory {
-  SAME_ROW = "Same Row",
-  SAME_COLUMN = "Same Column",
-  MIXED = "Mixed Positions",
-}
-
 interface SingleTableProps {
     id: string;
     isActive: boolean;
@@ -28,7 +22,8 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
   const previousDataRef = useRef<string>('');
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [splitChar, setSplitChar] = useState<string>('');
-  const [splitCellCoords, setSplitCellCoords] = useState<[number, number] | null>(null);
+  const [splitCellCoords, setSplitCellCoords] = useState<number[][]>([]);
+  // const [selectedRanges, setSelectedRanges] = useState<number[][]>([]);
   
   // Default data to use if no extracted data exists
   const defaultData = [
@@ -52,12 +47,27 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
 
-    const selected = hotInstance.getSelected();
+    const selected = hotInstance.getSelected() || [];
+    console.log(selected)
     if (!selected || selected.length === 0) return;
 
-    const [row, col] = selected[0];
+    // Store all selected cells as individual coordinates
+    const cellCoords: number[][] = [];
+    for (let index = 0; index < selected.length; index += 1) {
+      const [row1, column1, row2, column2] = selected[index];
+      const startRow = Math.max(Math.min(row1, row2), 0);
+      const endRow = Math.max(row1, row2);
+      const startCol = Math.max(Math.min(column1, column2), 0);
+      const endCol = Math.max(column1, column2);
+  
+      for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
+        for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
+          cellCoords.push([rowIndex, columnIndex])
+        }
+      }
+    }
 
-    setSplitCellCoords([row, col]);
+    setSplitCellCoords(cellCoords);
     setDialogOpen(true);
   };
 
@@ -129,21 +139,6 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     handleTableUpdate();
   };
 
-
-  function categorizePositions(positions: [number, number, number, number][]): string {
-    const allSameRow = positions.every(pos => pos[0] === positions[0][0]);
-    const allSameColumn = positions.every(pos => pos[1] === positions[0][1]);
-    
-    if (allSameRow) { 
-      return PositionCategory.SAME_ROW
-    };
-    if (allSameColumn) {
-       return PositionCategory.SAME_COLUMN
-    };
-
-    return PositionCategory.MIXED
-  }
-
   const splitSingleCell = (row: number, col: number) => {
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
@@ -196,10 +191,11 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
   
-    const [row, col] = splitCellCoords;
-    splitSingleCell(row, col)
-  
-    // Update table state
+    splitCellCoords.forEach(cell => {
+      const [row, col] = cell;
+      splitSingleCell(row, col)
+    });
+
     handleTableUpdate();
     closeDialog();
   };

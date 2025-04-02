@@ -6,6 +6,7 @@ import { Box, Button, Paper, Typography, Tooltip, CircularProgress } from "@mui/
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { FileText } from "lucide-react";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../constants";
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'success' | 'error';
 
@@ -15,7 +16,7 @@ interface FileUploaderProps {
 
 export default function FileUploader({ variant = 'button' }: FileUploaderProps) {
   const navigate = useNavigate();
-  const { setPdfData } = usePdf();
+  const { pdfName, setPdfData } = usePdf();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -25,6 +26,10 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (!e.target.files || e.target.files.length === 0) {
       return;
+    }
+
+    if(pdfName) {
+      await axios.delete(`${API_BASE_URL}/pdf/${pdfName}`)
     }
     
     const uploadedFile = e.target.files[0];
@@ -52,7 +57,7 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
       };
       
       // Post the file to the server
-      const response = await axios.post("http://127.0.0.1:8000/pdf", formData, {
+      await axios.post(`${API_BASE_URL}/pdf/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

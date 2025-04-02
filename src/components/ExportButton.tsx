@@ -12,6 +12,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import axios from "axios";
 import { useTableData } from "../custom-context/TableContext";
 import { usePdf } from "../custom-context/PdfContext";
+import { API_BASE_URL } from "../constants";
 
 enum ExportFormat {
     EXCEL = "excel",
@@ -54,7 +55,7 @@ export default function ExportButton() {
         const tableData = getExtractedTableData()
 
         try {
-            const response = await axios.post(`http://127.0.0.1:8000/exports/${exportFormat}`, 
+            const response = await axios.post(`${API_BASE_URL}/exports/${pdfName}/${exportFormat}`, 
                 { data: tableData},
                 { responseType: "blob" },
             );

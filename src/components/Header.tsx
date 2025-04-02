@@ -1,12 +1,19 @@
 import { AppBar, Box, Toolbar, Typography } from "@mui/material";
+import axios from "axios";
 import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../constants";
+import { usePdf } from "../custom-context/PdfContext";
 
   
 const Header: React.FC = () => {
+    const { pdfName } = usePdf();
     const navigate = useNavigate();
 
-    const onLogoClick = () => {
+    const onLogoClick = async () => {
+        if(pdfName) {
+            await axios.delete(`${API_BASE_URL}/pdf/${pdfName}`)
+        }
         navigate('/');
     }
 

@@ -4,6 +4,8 @@ import { useTableData } from "../../custom-context/TableContext";
 import axios from "axios";
 import { percentageCoordsToAbsolute } from "../../shared-types";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../../constants";
+import { usePdf } from "../../custom-context/PdfContext";
 
 
 interface RectangleMenuProps {
@@ -26,6 +28,7 @@ enum TableExtractionMethods {
 }
 
 const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
+    const { pdfName } = usePdf();
     const tablesContext = useTableData();
     const [extractionMethod, setExtractionMethod] = useState<TableExtractionMethods>(TableExtractionMethods.PYMU);
     const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
@@ -75,7 +78,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
 
         try {
             setLoading(true)
-            const response = await axios.get(`http://127.0.0.1:8000/pdf/table/${extractionMethod}`, {
+            const response = await axios.get(`${API_BASE_URL}/pdf/${pdfName}/table/${extractionMethod}`, {
                 params: rectData
               });
 

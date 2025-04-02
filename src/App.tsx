@@ -29,7 +29,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <PdfProvider>
         <TableDataProvider>
-          <BrowserRouter>
+          <BrowserRouter basename='/'>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/workplace" element={<MainPage />} />

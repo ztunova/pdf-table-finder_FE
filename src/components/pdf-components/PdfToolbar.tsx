@@ -8,6 +8,8 @@ import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import CreateIcon from '@mui/icons-material/Create';
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../../constants";
+import { usePdf } from "../../custom-context/PdfContext";
 
 enum TableDetectionMethods {
     PYMU = 'pymu',
@@ -15,6 +17,7 @@ enum TableDetectionMethods {
 }
 
 export const PdfToolbar: React.FC = () => {
+    const { pdfName } = usePdf();
     const drawingContext = useDrawing();
     const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
     const tableDataContext = useTableData();
@@ -47,7 +50,7 @@ export const PdfToolbar: React.FC = () => {
     async function handleDetectTablesButtonClick() {
         try {
             setLoading(true);
-            const response = await axios.get(`http://127.0.0.1:8000/pdf/all_tables/${tableDetectionMethod}`);
+            const response = await axios.get(`${API_BASE_URL}/pdf/${pdfName}/all_tables/${tableDetectionMethod}`);
             if (response.status === 200) {
                 const allTables: TableDetectionResponse = {
                     allRectangles: response.data.tables

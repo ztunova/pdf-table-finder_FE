@@ -21,7 +21,7 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
   const hotTableRef = useRef<HotTableRef>(null);
   const previousDataRef = useRef<string>('');
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [splitChar, setSplitChar] = useState<string>('');
+  const [splitChars, setSplitChar] = useState<string>('');
   const [splitCellCoords, setSplitCellCoords] = useState<number[][]>([]);
   // const [selectedRanges, setSelectedRanges] = useState<number[][]>([]);
   
@@ -48,7 +48,6 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     if (!hotInstance) return;
 
     const selected = hotInstance.getSelected() || [];
-    console.log(selected)
     if (!selected || selected.length === 0) return;
 
     // Store all selected cells as individual coordinates
@@ -146,7 +145,12 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
     const cellValue = hotInstance.getDataAtCell(row, col);
     if (!cellValue || typeof cellValue !== 'string' || cellValue.trim() === '') return;
   
-    const splitValues = cellValue.split(splitChar).map(value => value.trim());
+    const delimitersList: string[] = Array.from(splitChars) 
+    const escapedDelimiters = delimitersList.map(d => 
+      d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    ).join('');
+    const regex = new RegExp(`[${escapedDelimiters}]`);
+    const splitValues = cellValue.split(regex).map(value => value.trim());
   
     // If no actual splitting occurs, just close the dialog and return
     if (splitValues.length <= 1) {
@@ -186,7 +190,7 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
   } 
 
   const applySplit = () => {
-    if (!splitCellCoords || !splitChar) return;
+    if (!splitCellCoords || !splitChars) return;
   
     const hotInstance = hotTableRef.current?.hotInstance;
     if (!hotInstance) return;
@@ -267,9 +271,8 @@ const SingleTable: React.FC<SingleTableProps> = ({ id, isActive, rectangleId }) 
                   label="Split Character"
                   type="text"
                   fullWidth
-                  value={splitChar}
+                  value={splitChars}
                   onChange={(e) => setSplitChar(e.target.value)}
-                  slotProps={{ htmlInput: { maxLength: 1 } }}
               />
           </DialogContent>
           <DialogActions>

@@ -27,6 +27,7 @@ interface TableDataContextType {
     getTableDataById: (rectangleId: string) => TableData | null;
     updateExtractedData: (rectangleId: string, data: string[][] | null) => void;
     getExtractedTableData: () => TableDataMap;
+    setChatGptPrompt: (rectangleId: string, prompt: string | null) => void;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
@@ -62,10 +63,11 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
                 const rectId: string = uuidv4() 
                 const tableRecord: TableData = {
                   id: rectId,
-                  title: `Page ${pageNumber+1} Table ${index+1}`,
+                  title: `Page ${pageNumber + 1} Table ${index + 1}`,
                   pdfPageNumber: pageNumber,
                   coordinates: table,
                   extractedData: null,
+                  chatgptPrompt: null
                 }
                 newTableDataMap[rectId] = tableRecord
                 newTablesPerPage[pageNumber].push(rectId);
@@ -105,6 +107,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         pdfPageNumber: zeroBasedPageNumber,
         coordinates: tableCoordinates,
         extractedData: null,
+        chatgptPrompt: null
       };
     
       // Update tableData state with the new record
@@ -270,6 +273,26 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       return extractedTableData;
     };
 
+    const setChatGptPrompt = (rectangleId: string, prompt: string | null): void => {
+      if (!rectangleId) {
+        return;
+      }
+      
+      setTableDataState(prevTableData => {
+        if (!prevTableData || !prevTableData[rectangleId]) {
+          return prevTableData;
+        }
+
+        return {
+          ...prevTableData,
+          [rectangleId]: {
+            ...prevTableData[rectangleId],
+            chatgptPrompt: prompt
+          }
+        };
+      });
+    };
+
     const resetAllTableData = () => {
       setTableDataState(null);
       setTablesPerPage({});
@@ -293,6 +316,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           getTableDataById,
           updateExtractedData,
           getExtractedTableData,
+          setChatGptPrompt,
         }}
       >
         {children}

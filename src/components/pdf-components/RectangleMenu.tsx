@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTableData } from "../../custom-context/TableContext";
 import axios from "axios";
@@ -19,6 +19,7 @@ interface ExtractTableRequestParams {
     upperLeftY: number;
     lowerRightX: number;
     lowerRightY: number;
+    customPrompt?: string;
   }
 
 enum TableExtractionMethods {
@@ -34,9 +35,8 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
     const [loading, setLoading] = useState(false);
     const [promptDialogOpen, setPromptDialogOpen] = useState(false);
-    const [customPrompt, setCustomPrompt] = useState(
-      "TEST"
-    );
+    const [customPrompt, setCustomPrompt] = useState("");
+    const [useCustomPrompt, setUseCustomPrompt] = useState(false);
 
     // Update menu position when selected rectangle changes
     useEffect(() => {
@@ -63,6 +63,13 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     };
 
     const handleOpenPromptDialog = () => {
+      if (tablesContext.selectedRectangleId) {
+        const rectangleData = tablesContext.getTableDataById(tablesContext.selectedRectangleId);
+        // Set initial prompt value based on saved prompt or empty string
+        setCustomPrompt(rectangleData?.chatgptPrompt || "");
+        // If there's a saved prompt, default to using it
+        setUseCustomPrompt(!!rectangleData?.chatgptPrompt);
+      }
       setPromptDialogOpen(true);
     };
 
@@ -71,7 +78,12 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     };
 
     const handleSavePrompt = () => {
-        setPromptDialogOpen(false);
+      if (tablesContext.selectedRectangleId) {
+        // If prompt is empty, set it to null
+        const promptToSave = customPrompt.trim() === "" ? null : customPrompt;
+        tablesContext.setChatGptPrompt(tablesContext.selectedRectangleId, promptToSave);
+      }
+      setPromptDialogOpen(false);
     };
 
     const handleExtractClick = async() => {
@@ -91,6 +103,12 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
             upperLeftY: selectedRectangle.coordinates.upperLeftY,
             lowerRightX: selectedRectangle.coordinates.lowerRightX,
             lowerRightY: selectedRectangle.coordinates.lowerRightY,
+        }
+
+        if (extractionMethod === TableExtractionMethods.CHATGPT && 
+          useCustomPrompt && 
+          selectedRectangle.chatgptPrompt) {
+          rectData['customPrompt'] = selectedRectangle.chatgptPrompt;
         }
 
         try {
@@ -144,8 +162,10 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     if (!tablesContext.selectedRectangleId) {
        return null 
     };
-    const rectangleName = tablesContext.getTableDataById(tablesContext.selectedRectangleId)?.title;
-  
+
+    const rectangleData = tablesContext.getTableDataById(tablesContext.selectedRectangleId);
+    const rectangleName = rectangleData?.title;
+    const hasCustomPrompt = rectangleData?.chatgptPrompt !== null && rectangleData?.chatgptPrompt !== undefined;
     return (
       <>
         <Paper
@@ -183,6 +203,18 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
           </Select>
 
           {extractionMethod === TableExtractionMethods.CHATGPT && (
+            <>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Checkbox
+                    checked={useCustomPrompt && hasCustomPrompt}
+                    onChange={(e) => setUseCustomPrompt(e.target.checked)}
+                    disabled={!hasCustomPrompt}
+                    size="small"
+                  />
+                  <Typography variant="caption">
+                    Use custom prompt
+                  </Typography>
+                </Box>
               <Button 
                 variant="outlined"
                 size="small"
@@ -192,6 +224,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
               >
                 Customize Prompt
               </Button>
+            </>
           )}
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

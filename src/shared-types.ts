@@ -24,6 +24,7 @@ export interface TableData {
   pdfPageNumber: number,
   coordinates: TableBoundingBox,
   extractedData: string[][] | null,
+  chatgptPrompt: string | null,
 }
 
 export const absoluteCoordsToPercentage = (value: number, total: number) => ((value / total) * 100);

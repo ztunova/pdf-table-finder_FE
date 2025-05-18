@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, MenuItem, Paper, Select, SelectChangeEvent, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTableData } from "../../custom-context/TableContext";
 import axios from "axios";
@@ -33,6 +33,10 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     const [extractionMethod, setExtractionMethod] = useState<TableExtractionMethods>(TableExtractionMethods.PYMU);
     const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
     const [loading, setLoading] = useState(false);
+    const [promptDialogOpen, setPromptDialogOpen] = useState(false);
+    const [customPrompt, setCustomPrompt] = useState(
+      "TEST"
+    );
 
     // Update menu position when selected rectangle changes
     useEffect(() => {
@@ -56,6 +60,18 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
 
     const handleMethodChange = (event: SelectChangeEvent) => {
         setExtractionMethod(event.target.value as TableExtractionMethods);
+    };
+
+    const handleOpenPromptDialog = () => {
+      setPromptDialogOpen(true);
+    };
+
+    const handleClosePromptDialog = () => {
+        setPromptDialogOpen(false);
+    };
+
+    const handleSavePrompt = () => {
+        setPromptDialogOpen(false);
     };
 
     const handleExtractClick = async() => {
@@ -131,63 +147,104 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     const rectangleName = tablesContext.getTableDataById(tablesContext.selectedRectangleId)?.title;
   
     return (
-      <Paper
-        elevation={3}
-        sx={{
-            position: 'absolute',
-            left: `${menuPosition.left}px`,
-            top: `${menuPosition.top}px`,
-            width: '180px',
-            padding: 2,
-            borderRadius: 1,
-            zIndex: 1000
-          }}
-      >
-        <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
-          {rectangleName}
-        </Typography>
-        
-        <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-          Extraction Method:
-        </Typography>
-        
-        <Select
-          fullWidth
-          size="small"
-          value={extractionMethod}
-          sx={{ mb: 2 }}
-          onChange={handleMethodChange}
+      <>
+        <Paper
+          elevation={3}
+          sx={{
+              position: 'absolute',
+              left: `${menuPosition.left}px`,
+              top: `${menuPosition.top}px`,
+              width: '180px',
+              padding: 2,
+              borderRadius: 1,
+              zIndex: 1000
+            }}
         >
-          {extractionMethods.map(method => (
-            <MenuItem key={method.value} value={method.value}>
-              {method.label}
-            </MenuItem>
-          ))}
-        </Select>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            size="small"
-            sx={{ width: '48%' }}
-            disabled={loading}
-            onClick={handleExtractClick}
-          >
-            {loading ? <CircularProgress size={20} color="inherit" /> : "Extract"}
-          </Button>
+          <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
+            {rectangleName}
+          </Typography>
           
-          <Button
-            variant="outlined"
-            color="error"
+          <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+            Extraction Method:
+          </Typography>
+          
+          <Select
+            fullWidth
             size="small"
-            sx={{ width: '48%' }}
-            onClick={handleDeleteClick}
+            value={extractionMethod}
+            sx={{ mb: 2 }}
+            onChange={handleMethodChange}
           >
-            Delete
-          </Button>
-        </Box>
-      </Paper>
+            {extractionMethods.map(method => (
+              <MenuItem key={method.value} value={method.value}>
+                {method.label}
+              </MenuItem>
+            ))}
+          </Select>
+
+          {extractionMethod === TableExtractionMethods.CHATGPT && (
+              <Button 
+                variant="outlined"
+                size="small"
+                fullWidth
+                sx={{ mb: 2 }}
+                onClick={handleOpenPromptDialog}
+              >
+                Customize Prompt
+              </Button>
+          )}
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              size="small"
+              sx={{ width: '48%' }}
+              disabled={loading}
+              onClick={handleExtractClick}
+            >
+              {loading ? <CircularProgress size={20} color="inherit" /> : "Extract"}
+            </Button>
+            
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              sx={{ width: '48%' }}
+              onClick={handleDeleteClick}
+            >
+              Delete
+            </Button>
+          </Box>
+        </Paper>
+
+        <Dialog 
+          open={promptDialogOpen}
+          onClose={handleClosePromptDialog}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle>Custom Extraction Prompt</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              fullWidth
+              multiline
+              rows={10}
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              // inputProps={{ maxLength: 500 }}
+              // helperText={`${customPrompt.length}/500 characters`}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClosePromptDialog}>Cancel</Button>
+            <Button onClick={handleSavePrompt} variant="contained">Save</Button>
+          </DialogActions>
+        </Dialog>
+        
+      </>
     );
   };
   

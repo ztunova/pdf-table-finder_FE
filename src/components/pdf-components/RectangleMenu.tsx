@@ -28,7 +28,7 @@ enum TableExtractionMethods {
 }
 
 const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
-    const { pdfName } = usePdf();
+    const { getPdfNameWithId } = usePdf();
     const tablesContext = useTableData();
     const [extractionMethod, setExtractionMethod] = useState<TableExtractionMethods>(TableExtractionMethods.PYMU);
     const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
@@ -68,6 +68,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
             throw new Error("Selected rectangle doesn't exist");
         }
 
+        const pdfNameWithId = getPdfNameWithId();
         const rectData: ExtractTableRequestParams = {
             pdfPageNumber: selectedRectangle?.pdfPageNumber,
             upperLeftX: selectedRectangle.coordinates.upperLeftX,
@@ -78,7 +79,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
 
         try {
             setLoading(true)
-            const response = await axios.get(`${API_BASE_URL}/pdf/${pdfName}/table/${extractionMethod}`, {
+            const response = await axios.get(`${API_BASE_URL}/pdf/${pdfNameWithId}/table/${extractionMethod}`, {
                 params: rectData
               });
 

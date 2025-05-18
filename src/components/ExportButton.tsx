@@ -25,7 +25,7 @@ export default function ExportButton() {
 
     const [exportFormat, setExportFormat] = useState<ExportFormat>(ExportFormat.EXCEL);
     const { getExtractedTableData } = useTableData();
-    const { pdfName } = usePdf();
+    const { pdfName, getPdfNameWithId } = usePdf();
 
     const handleMenuClick = (event: MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -53,9 +53,10 @@ export default function ExportButton() {
     const handleExport = async (format: ExportFormat) => {
         setExportFormat(format);
         const tableData = getExtractedTableData()
+        const pdfNameWithId = getPdfNameWithId();
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/exports/${pdfName}/${exportFormat}`, 
+            const response = await axios.post(`${API_BASE_URL}/exports/${pdfNameWithId}/${exportFormat}`, 
                 { data: tableData},
                 { responseType: "blob" },
             );

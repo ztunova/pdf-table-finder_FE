@@ -17,7 +17,7 @@ enum TableDetectionMethods {
 }
 
 export const PdfToolbar: React.FC = () => {
-    const { pdfName } = usePdf();
+    const { getPdfNameWithId } = usePdf();
     const drawingContext = useDrawing();
     const [tableDetectionMethod, setTableDetectionMethod] = useState<TableDetectionMethods>(TableDetectionMethods.PYMU);
     const tableDataContext = useTableData();
@@ -48,9 +48,10 @@ export const PdfToolbar: React.FC = () => {
     };
 
     async function handleDetectTablesButtonClick() {
+        const pdfNameWithId = getPdfNameWithId();
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/pdf/${pdfName}/all_tables/${tableDetectionMethod}`);
+            const response = await axios.get(`${API_BASE_URL}/pdf/${pdfNameWithId}/all_tables/${tableDetectionMethod}`);
             if (response.status === 200) {
                 const allTables: TableDetectionResponse = {
                     allRectangles: response.data.tables

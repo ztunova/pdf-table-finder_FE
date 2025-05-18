@@ -16,7 +16,7 @@ interface FileUploaderProps {
 
 export default function FileUploader({ variant = 'button' }: FileUploaderProps) {
   const navigate = useNavigate();
-  const { pdfName, setPdfData } = usePdf();
+  const { pdfName, setPdfData, getPdfNameWithId } = usePdf();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -29,19 +29,20 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
     }
 
     if(pdfName) {
-      await axios.delete(`${API_BASE_URL}/pdf/${pdfName}`)
+      const pdfNameWithId = getPdfNameWithId()
+      await axios.delete(`${API_BASE_URL}/pdf/${pdfNameWithId}`)
     }
     
     const uploadedFile = e.target.files[0];
     setFileName(uploadedFile.name);
     const fileUrl = URL.createObjectURL(uploadedFile);
-    setPdfData(fileUrl, uploadedFile.name); // automatically handles cleanup of previous url
+    const pdfId: string = setPdfData(fileUrl, uploadedFile.name); // automatically handles cleanup of previous url
     
     // Start upload immediately
-    await uploadFile(uploadedFile);
+    await uploadFile(uploadedFile, pdfId);
   }
 
-  async function uploadFile(file: File) {
+  async function uploadFile(file: File, pdfId: string) {
     // Set uploading state and reset progress
     setStatus('uploading');
     setUploadProgress(0);
@@ -57,7 +58,7 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
       };
       
       // Post the file to the server
-      await axios.post(`${API_BASE_URL}/pdf/upload`, formData, {
+      await axios.post(`${API_BASE_URL}/pdf/${pdfId}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -117,8 +118,8 @@ export default function FileUploader({ variant = 'button' }: FileUploaderProps) 
       if (droppedFile.type === 'application/pdf') {
         setFileName(droppedFile.name);
         const fileUrl = URL.createObjectURL(droppedFile);
-        setPdfData(fileUrl, droppedFile.name);
-        uploadFile(droppedFile);
+        const pdfId: string = setPdfData(fileUrl, droppedFile.name);
+        uploadFile(droppedFile, pdfId);
       } else {
         // Handle non-PDF file
         setStatus('error');

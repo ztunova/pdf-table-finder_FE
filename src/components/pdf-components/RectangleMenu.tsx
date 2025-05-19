@@ -207,8 +207,13 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Checkbox
                     checked={useCustomPrompt && hasCustomPrompt}
-                    onChange={(e) => setUseCustomPrompt(e.target.checked)}
-                    disabled={!hasCustomPrompt}
+                    onChange={(e) => {
+                      if (e.target.checked && !hasCustomPrompt) {
+                        toast.info("No custom prompt defined. Click 'Customize Prompt' to create one.");
+                      }
+                      setUseCustomPrompt(e.target.checked);
+                    }}
+                    // disabled={!hasCustomPrompt}
                     size="small"
                   />
                   <Typography variant="caption">

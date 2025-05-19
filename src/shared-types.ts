@@ -25,6 +25,7 @@ export interface TableData {
   coordinates: TableBoundingBox,
   extractedData: string[][] | null,
   chatgptPrompt: string | null,
+  useCustomPrompt: boolean,
 }
 
 export const absoluteCoordsToPercentage = (value: number, total: number) => ((value / total) * 100);

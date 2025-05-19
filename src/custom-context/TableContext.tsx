@@ -28,6 +28,7 @@ interface TableDataContextType {
     updateExtractedData: (rectangleId: string, data: string[][] | null) => void;
     getExtractedTableData: () => TableDataMap;
     setChatGptPrompt: (rectangleId: string, prompt: string | null) => void;
+    setUseCustomPrompt: (rectangleId: string, usePrompt: boolean) => void;
 }
 
 const TableDataContext = createContext<TableDataContextType | undefined>(undefined);
@@ -67,7 +68,8 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
                   pdfPageNumber: pageNumber,
                   coordinates: table,
                   extractedData: null,
-                  chatgptPrompt: null
+                  chatgptPrompt: null,
+                  useCustomPrompt: false
                 }
                 newTableDataMap[rectId] = tableRecord
                 newTablesPerPage[pageNumber].push(rectId);
@@ -107,7 +109,8 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         pdfPageNumber: zeroBasedPageNumber,
         coordinates: tableCoordinates,
         extractedData: null,
-        chatgptPrompt: null
+        chatgptPrompt: null,
+        useCustomPrompt: false
       };
     
       // Update tableData state with the new record
@@ -293,6 +296,26 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
       });
     };
 
+    const setUseCustomPrompt = (rectangleId: string, usePrompt: boolean): void => {
+      if (!rectangleId) {
+        return;
+      }
+      
+      setTableDataState(prevTableData => {
+        if (!prevTableData || !prevTableData[rectangleId]) {
+          return prevTableData;
+        }
+    
+        return {
+          ...prevTableData,
+          [rectangleId]: {
+            ...prevTableData[rectangleId],
+            useCustomPrompt: usePrompt
+          }
+        };
+      });
+    };
+
     const resetAllTableData = () => {
       setTableDataState(null);
       setTablesPerPage({});
@@ -317,6 +340,7 @@ export const TableDataProvider: React.FC<{ children: ReactNode }> = ({ children 
           updateExtractedData,
           getExtractedTableData,
           setChatGptPrompt,
+          setUseCustomPrompt,
         }}
       >
         {children}

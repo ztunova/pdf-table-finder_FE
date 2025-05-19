@@ -36,7 +36,6 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     const [loading, setLoading] = useState(false);
     const [promptDialogOpen, setPromptDialogOpen] = useState(false);
     const [customPrompt, setCustomPrompt] = useState("");
-    const [useCustomPrompt, setUseCustomPrompt] = useState(false);
 
     // Update menu position when selected rectangle changes
     useEffect(() => {
@@ -67,8 +66,6 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
         const rectangleData = tablesContext.getTableDataById(tablesContext.selectedRectangleId);
         // Set initial prompt value based on saved prompt or empty string
         setCustomPrompt(rectangleData?.chatgptPrompt || "");
-        // If there's a saved prompt, default to using it
-        setUseCustomPrompt(!!rectangleData?.chatgptPrompt);
       }
       setPromptDialogOpen(true);
     };
@@ -166,6 +163,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
     const rectangleData = tablesContext.getTableDataById(tablesContext.selectedRectangleId);
     const rectangleName = rectangleData?.title;
     const hasCustomPrompt = rectangleData?.chatgptPrompt !== null && rectangleData?.chatgptPrompt !== undefined;
+    const useCustomPrompt = rectangleData?.useCustomPrompt || false;
     return (
       <>
         <Paper
@@ -211,7 +209,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
                       if (e.target.checked && !hasCustomPrompt) {
                         toast.info("No custom prompt defined. Click 'Customize Prompt' to create one.");
                       }
-                      setUseCustomPrompt(e.target.checked);
+                      tablesContext.setUseCustomPrompt(tablesContext.selectedRectangleId || "", e.target.checked);
                     }}
                     // disabled={!hasCustomPrompt}
                     size="small"

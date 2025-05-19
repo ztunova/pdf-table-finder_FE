@@ -45,8 +45,7 @@ export const PdfProvider: React.FC<{ children: ReactNode }> = ({children}) => {
 
     const getPdfNameWithId = () : string | null => {
         if (!pdfName) {
-            console.log("!pdfname")
-            return "exported_tables"
+            return ""
         };
 
         const pdfNameWithoutSuffix: string = pdfName.toLowerCase().endsWith('.pdf') 
@@ -54,7 +53,6 @@ export const PdfProvider: React.FC<{ children: ReactNode }> = ({children}) => {
         : pdfName;
 
         const pdfNameWithId: string = `${pdfNameWithoutSuffix}__${pdfId}.pdf`;
-        console.log("pdf name with id: ", pdfNameWithId)
         return pdfNameWithId;
     }
 

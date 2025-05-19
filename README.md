@@ -3,7 +3,10 @@
 This project is a React-based user interface designed for an application that automatically detects and extracts tables from PDF files. It provides an interactive environment where users can review and adjust the results of the detection and extraction process. Users can adjust the borders of automatically detected tables, manually draw table boundaries when necessary, and edit both the extracted data and the overall table structure.
 
 ## Demo
-Deployed application is available at following URL: https://pdf-table-extractor.dyn.cloud.e-infra.cz/
+Deployed application is available at following URL: https://pdf-table-extractor.dyn.cloud.e-infra.cz/ <br>
+API used by the UI can be found at following URLs:
+- repository: https://github.com/ztunova/pdf-table-finder_BE
+- deployed API: https://api.pdf-table-extractor.dyn.cloud.e-infra.cz/
 
 ## Technologies
 - React
@@ -31,7 +34,8 @@ The application communicates with a back-end API for PDF processing. Ensure the 
 
 ### 4. Build Docker Image
 The project includes a Dockerfile for containerized deployment. <br>
-To build the Docker image, navigate to the project root directory and use command `docker build -t pdf-table-extractor-fe .`
+To build the Docker image, navigate to the project root directory and use command `docker build -t pdf-table-extractor-fe .` <br>
+Instructions to deploy to CERIT Kubernetes cluster together with configuration files can be found in following repository: https://github.com/ztunova/pdf-table-finder_kubernetes-deployment
 
 ## Project Structure
 ```

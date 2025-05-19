@@ -1,50 +1,46 @@
-# React + TypeScript + Vite
+# PDF Table Finder UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a React-based user interface designed for an application that automatically detects and extracts tables from PDF files. It provides an interactive environment where users can review and adjust the results of the detection and extraction process. Users can adjust the borders of automatically detected tables, manually draw table boundaries when necessary, and edit both the extracted data and the overall table structure.
 
-Currently, two official plugins are available:
+## Demo
+Deployed application is available at following URL: https://pdf-table-extractor.dyn.cloud.e-infra.cz/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Technologies
+- React
+- Node.js (v22.13.1)
+- Material UI
+- Fabric.js
+- Handsontable
 
-## Expanding the ESLint configuration
+## Setup Instructions
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### 1. Prerequisites
+- Node.js (v22.13.1)
+- npm
+- Back-end API for PDF processing available at https://github.com/ztunova/pdf-table-finder_BE 
 
-- Configure the top-level `parserOptions` property like this:
+### 2. Configuration
+The application communicates with a back-end API for PDF processing. Ensure the API is running and its base URL is properly configured in `/src/constants.ts` file. Use first URL in the file for deployed back-end and the second URL for locally running API.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### 3. Installation and Running the Application
+1) Clone the repository with `git clone`
+2) Use `cd` to navigate to the project root directory
+3) Install dependencies using `npm install`
+4) Run project locally with `npm run dev`
+
+
+### 4. Build Docker Image
+The project includes a Dockerfile for containerized deployment. <br>
+To build the Docker image, navigate to the project root directory and use command `docker build -t pdf-table-extractor-fe .`
+
+## Project Structure
+```
+src/
+├── components/
+│   ├── pdf-components/   # Components for PDF rendering and interaction
+│   ├── table-components/ # Components for table visualization and editing
+│   └── ...               # Common component files
+├── custom-context/       # Context providers for state management
+└── pages/                # Application pages/routes
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```

@@ -271,7 +271,7 @@ const RectangleMenu = ({ canvasWidth, canvasHeight }: RectangleMenuProps) => {
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
               // inputProps={{ maxLength: 500 }}
-              // helperText={`${customPrompt.length}/500 characters`}
+              helperText={`Default Prompt: Format as excel table, data are as numbers.`}
             />
           </DialogContent>
           <DialogActions>
